@@ -1,0 +1,118 @@
+BUATKAN SAAS COOKIE RESTORE APP DENGAN SPESIFIKASI BERIKUT:
+
+**TEKNICAL REQUIREMENTS:**
+- Framework: Next.js 15 dengan App Router (sudah saya install di root project)
+- Database: MySQL dengan Prisma ORM
+- Authentication: JWT dengan single login policy
+- Payment: Midtrans integration
+- Language: TypeScript
+- Styling: Tailwind CSS
+- Structure: src folder, import alias @/*
+
+**FITUR YANG DIBUTUHKAN:**
+
+1. **AUTHENTICATION SYSTEM**
+   - Register/Login dengan JWT
+   - Single login policy (satu user satu session)
+   - Email verification
+   - Protected routes berdasarkan role & subscription
+
+2. **SUBSCRIPTION MANAGEMENT**
+   - Multiple plans (Basic, Pro, Premium)
+   - Midtrans payment gateway
+   - Transaction history
+   - Subscription status check
+
+3. **SERVICE ACCESS MATRIX**
+   - Plan-based service access
+   - Service groups → categories → services hierarchy
+   - Cookie data storage & retrieval
+
+4. **API ENDPOINTS:**
+   - Public: GET /api/plans
+   - Protected: 
+     - POST /api/auth/login
+     - POST /api/auth/register  
+     - POST /api/auth/logout
+     - GET /api/services (accessible services berdasarkan plan user)
+     - POST /api/restore-cookie
+     - POST /api/subscriptions/create
+     - POST /api/midtrans/callback
+
+5. **ADMIN PANEL:**
+   - Manage services, categories, groups
+   - Manage plan-service access matrix
+   - User management
+   - Transaction monitoring
+
+**DATABASE SCHEMA:** (sudah didefinisikan di Prisma schema)
+
+**IMPLEMENTASI KHUSUS:**
+
+1. **Middleware:**
+   - Auth middleware untuk protected routes
+   - Subscription check middleware
+   - Service access middleware
+
+2. **Utilities:**
+   - JWT token management
+   - Password hashing dengan bcrypt
+   - Midtrans service helper
+   - Access control utilities
+
+3. **Type Safety:**
+   - TypeScript interfaces untuk semua models
+   - API response type definitions
+   - Prisma client extensions
+
+**STRUKTUR FOLDER:**
+src/
+├── app/
+│ ├── api/
+│ │ ├── auth/
+│ │ ├── services/
+│ │ ├── subscriptions/
+│ │ └── midtrans/
+│ ├── dashboard/
+│ ├── admin/
+│ └── auth/
+├── lib/
+│ ├── auth.ts
+│ ├── prisma.ts
+│ ├── midtrans.ts
+│ └── access-control.ts
+├── components/
+│ ├── ui/
+│ └── dashboard/
+├── types/
+└── utils/
+
+
+**REQUIREMENTS:**
+- Implementasi loading states & error handling
+- Responsive design dengan Tailwind untuk berbagai devices (Mobile, Tab, Desktop, dsb) dengan tema Glassmorphism
+- Environment variables untuk sensitive data
+- Rate limiting untuk API endpoints
+- Aplikasi bernama Gecko Store
+
+**BUATKAN:**
+1. Complete Prisma schema & migrations
+2. All API routes dengan TypeScript
+3. Basic UI components untuk auth & dashboard
+4. Admin panel skeleton
+5. Authentication context & hooks
+6. Midtrans integration utilities
+
+**NOTE:** Kode harus production-ready dengan proper error handling, validation, dan security practices.
+
+PHASE 1: Authentication + Basic UI
+PHASE 2: Subscription & Payment  
+PHASE 3: Service Management & Access Control
+PHASE 4: Cookie Restore API + Chrome Extension
+PHASE 5: Admin Panel + Advanced Features
+
+Security Considerations:
+Rate limiting pada login & restore endpoints
+CORS configuration untuk ekstensi Chrome
+JWT token rotation
+Audit logging untuk restore activities
