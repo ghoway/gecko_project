@@ -685,7 +685,7 @@ function ServicesTab() {
     name: '',
     category_id: '',
     is_active: true,
-    cookie_data: {} as Record<string, unknown>
+    cookie_data: {} as Record<string, unknown> | string
   })
 
   useEffect(() => {
@@ -813,7 +813,7 @@ function ServicesTab() {
       name: '',
       category_id: '',
       is_active: true,
-      cookie_data: {} as Record<string, unknown>
+      cookie_data: {}
     })
   }
 
@@ -890,6 +890,25 @@ function ServicesTab() {
                 <option value="true">Active</option>
                 <option value="false">Inactive</option>
               </select>
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Cookie Data (JSON)</label>
+              <textarea
+                value={JSON.stringify(formData.cookie_data, null, 2)}
+                onChange={(e) => {
+                  try {
+                    const parsed = JSON.parse(e.target.value)
+                    setFormData({...formData, cookie_data: parsed})
+                  } catch (error) {
+                    // Allow invalid JSON temporarily while user is typing
+                    setFormData({...formData, cookie_data: e.target.value})
+                  }
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white/50 backdrop-blur-sm font-mono text-sm"
+                placeholder='{"session_id": "abc123", "user_agent": "Mozilla/5.0..."}'
+                rows={6}
+              />
+              <p className="text-xs text-gray-500 mt-1">Enter cookie data as valid JSON object</p>
             </div>
           </div>
           <div className="flex gap-2 mt-4">

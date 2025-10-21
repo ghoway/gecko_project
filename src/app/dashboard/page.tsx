@@ -199,7 +199,7 @@ export default function DashboardPage() {
                         Rp {plan.price.toLocaleString()} + Rp {(plan.price * 0.11).toLocaleString()} tax
                       </div>
                     </div>
-                    <p className="text-gray-600 mb-4">{plan.features ? JSON.parse(plan.features as string).join(', ') : 'Access to basic services'}</p>
+                    <p className="text-gray-600 mb-4">{plan.features ? (Array.isArray(plan.features) ? (plan.features as string[]).join(', ') : 'Access to basic services') : 'Access to basic services'}</p>
                     <button
                       onClick={() => handleSubscribe(plan.id)}
                       disabled={plansLoading || user.current_plan_id === plan.id}
