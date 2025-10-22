@@ -1,7 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Crown, User, Mail, Calendar, CreditCard, ArrowLeft } from 'lucide-react'
 import type { UserWithPlan } from '@/types'
 
 export default function DashboardPage() {
@@ -34,7 +38,6 @@ export default function DashboardPage() {
         // If user doesn't have a subscription, redirect to subscribe page
         if (!data.data.current_plan_id) {
           router.push('/subscribe')
-          return
         }
       } else {
         localStorage.removeItem('token')
@@ -50,6 +53,34 @@ export default function DashboardPage() {
   }
 
 
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    })
+  }
+
+  const getDaysUntilExpiry = (dateString?: string) => {
+    if (!dateString) return 0
+    const today = new Date()
+    const expiryDate = new Date(dateString)
+    const diffTime = expiryDate.getTime() - today.getTime()
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    return diffDays > 0 ? diffDays : 0
+  }
+
+  const getPlanColor = (planName?: string) => {
+    if (!planName) return 'text-gray-600 bg-gray-100'
+    switch (planName.toLowerCase()) {
+      case 'starter': return 'text-orange-600 bg-orange-100'
+      case 'pro': return 'text-red-600 bg-red-100'
+      case 'premium': return 'text-blue-600 bg-blue-100'
+      default: return 'text-gray-600 bg-gray-100'
+    }
+  }
 
   const handleLogout = async () => {
     const token = localStorage.getItem('token')
@@ -67,70 +98,158 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-orange-100 via-red-50 to-blue-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
       </div>
-    )
-  }
-
-  if (!user) {
-    return null
-  }
+  )
+}
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <nav className="bg-white/10 backdrop-blur-lg border-b border-white/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-3xl font-bold text-gray-800">Gecko Store</h1>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-orange-100 via-red-50 to-blue-100 relative overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-20 left-20 w-72 h-72 bg-orange-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+        <div className="absolute top-40 right-20 w-72 h-72 bg-red-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-8 left-40 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+      </div>
+
+      {/* Header */}
+      <header className="relative z-10 bg-white/10 backdrop-blur-md border-b border-white/20">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <span className="text-gray-700">Welcome, {user.name}</span>
-              <button
-                onClick={handleLogout}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+              <Link
+                href="/"
+                className="inline-flex items-center text-gray-600 hover:text-orange-600 transition-colors"
               >
-                Sign Out
-              </button>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Home
+              </Link>
+              <div className="flex items-center space-x-2">
+                <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
+                  <Crown className="w-6 h-6 text-white" />
+                </div>
+                <span className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                  Gecko Store
+                </span>
+              </div>
             </div>
+
+            <nav className="flex items-center space-x-4">
+              <Link href="/subscribe">
+                <Button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white">
+                  Upgrade Plan
+                </Button>
+              </Link>
+              <Button variant="outline" className="bg-white/20 border-white/30 hover:bg-white/30" onClick={handleLogout}>
+                Sign Out
+              </Button>
+            </nav>
           </div>
         </div>
-      </nav>
+      </header>
 
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20 p-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Dashboard</h2>
+      {/* Dashboard Content */}
+      <div className="relative z-10 container mx-auto px-4 py-8">
+        <h1 className="text-4xl font-bold text-center mb-8 bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+          Dashboard
+        </h1>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              <div className="bg-white/50 backdrop-blur-sm rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Subscription Status</h3>
-                <p className="text-gray-600">
-                  {user.plan ? `Active: ${user.plan.name}` : 'No active subscription'}
-                </p>
-                {user.subscription_ends_at && (
-                  <p className="text-sm text-gray-500 mt-1">
-                    Expires: {new Date(user.subscription_ends_at).toLocaleDateString()}
+        {/* User Profile & Subscription Card */}
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-12">
+          {/* User Profile Card */}
+          <Card className="bg-white/10 backdrop-blur-lg border border-white/20">
+            <CardHeader>
+              <CardTitle className="flex items-center text-gray-800">
+                <User className="w-5 h-5 mr-2" />
+                Profile Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center">
+                  <User className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-800">{user?.name || 'User'}</p>
+                  <p className="text-sm text-gray-600">{user?.plan?.name || 'No Plan'} Member</p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center text-gray-700">
+                  <Mail className="w-4 h-4 mr-3 text-orange-500" />
+                  <span>{user?.email || 'N/A'}</span>
+                </div>
+                <div className="flex items-center text-gray-700">
+                  <Calendar className="w-4 h-4 mr-3 text-red-500" />
+                  <span>Member since: 1 January 2024</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Subscription Card */}
+          <Card className="bg-white/10 backdrop-blur-lg border border-white/20">
+            <CardHeader>
+              <CardTitle className="flex items-center text-gray-800">
+                <CreditCard className="w-5 h-5 mr-2" />
+                Subscription Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-700">Current Plan:</span>
+                <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getPlanColor(user?.plan?.name)}`}>
+                  {user?.plan?.name || 'No Plan'}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-gray-700">Status:</span>
+                <span className="px-3 py-1 rounded-full text-sm font-semibold text-green-600 bg-green-100">
+                  Active
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-gray-700">Expires:</span>
+                <span className="text-gray-800 font-medium">
+                  {user?.subscription_ends_at ? formatDate(user.subscription_ends_at.toISOString()) : 'N/A'}
+                </span>
+              </div>
+
+              <div className="pt-4 border-t border-white/20">
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-gray-800">
+                    {getDaysUntilExpiry(user?.subscription_ends_at?.toISOString())}
                   </p>
-                )}
+                  <p className="text-sm text-gray-600">days remaining</p>
+                </div>
               </div>
-
-              <div className="bg-white/50 backdrop-blur-sm rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Account Type</h3>
-                <p className="text-gray-600">
-                  {user.is_admin ? 'Administrator' : 'Regular User'}
-                </p>
-              </div>
-
-              <div className="bg-white/50 backdrop-blur-sm rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Email</h3>
-                <p className="text-gray-600">{user.email}</p>
-              </div>
-             </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
-      </main>
+
+        {/* Services Access Section */}
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-8 bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+            Your Services
+          </h2>
+          <Card className="bg-white/10 backdrop-blur-lg border border-white/20">
+            <CardContent className="p-8">
+              <p className="text-center text-gray-600">
+                Service access information will be displayed here. Use the extension to access your premium accounts.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+
     </div>
   )
 }

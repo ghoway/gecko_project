@@ -5,9 +5,11 @@ import type { ApiResponse } from '@/types'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
+
     // Check admin access
     const authHeader = request.headers.get('authorization')
     if (!authHeader?.startsWith('Bearer ')) {
@@ -26,7 +28,7 @@ export async function POST(
       }, { status: 403 })
     }
 
-    const userId = params.id
+    const userId = id
     const { banned } = await request.json()
 
     // Update user ban status

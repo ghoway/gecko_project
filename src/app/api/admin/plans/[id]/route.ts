@@ -6,9 +6,11 @@ import type { ApiResponse, PlanWithServices } from '@/types'
 // PUT /api/admin/plans/[id] - Update plan (admin only)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
+
     // Check admin access
     const authHeader = request.headers.get('authorization')
     if (!authHeader?.startsWith('Bearer ')) {
@@ -27,7 +29,7 @@ export async function PUT(
       }, { status: 403 })
     }
 
-    const planId = parseInt(params.id)
+    const planId = parseInt(id)
     if (isNaN(planId)) {
       return NextResponse.json<ApiResponse>({
         success: false,
@@ -159,9 +161,11 @@ export async function PUT(
 // DELETE /api/admin/plans/[id] - Delete plan (admin only)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
+
     // Check admin access
     const authHeader = request.headers.get('authorization')
     if (!authHeader?.startsWith('Bearer ')) {
@@ -180,7 +184,7 @@ export async function DELETE(
       }, { status: 403 })
     }
 
-    const planId = parseInt(params.id)
+    const planId = parseInt(id)
     if (isNaN(planId)) {
       return NextResponse.json<ApiResponse>({
         success: false,

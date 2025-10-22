@@ -12,16 +12,23 @@ export async function middleware(request: NextRequest) {
 
   // Check if user is authenticated (has valid token)
   const authHeader = request.headers.get('authorization')
-  const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null
+  const cookieToken = request.cookies.get('token')?.value
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : cookieToken
   let user = null
 
   if (token) {
     user = await getUserFromToken(token)
   }
 
-  // If user is authenticated and trying to access auth pages, redirect to dashboard
+  // If user is authenticated and trying to access auth pages, redirect based on subscription status
   if (user && pathname.startsWith('/auth/')) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+    // Check if user has active subscription
+    const hasActiveSubscription = user.subscription_ends_at && user.subscription_ends_at > new Date()
+    if (hasActiveSubscription) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    } else {
+      return NextResponse.redirect(new URL('/subscribe', request.url))
+    }
   }
 
   // Public routes that don't require authentication
@@ -33,7 +40,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Protected routes (require authentication AND active subscription for most APIs)
-  const protectedRoutes = ['/dashboard', '/admin', '/api/services', '/api/subscriptions', '/api/restore-cookie']
+  const protectedRoutes = ['/dashboard', '/admin', '/api/services', '/api/subscriptions']
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
 
   if (isProtectedRoute) {

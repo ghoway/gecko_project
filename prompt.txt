@@ -35,7 +35,7 @@ BUATKAN SAAS COOKIE RESTORE APP DENGAN SPESIFIKASI BERIKUT:
      - POST /api/auth/register  
      - POST /api/auth/logout
      - GET /api/services (accessible services berdasarkan plan user)
-     - POST /api/restore-cookie
+
      - POST /api/subscriptions/create
      - POST /api/midtrans/callback
 

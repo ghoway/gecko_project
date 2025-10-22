@@ -6,9 +6,11 @@ import type { ApiResponse, ServiceWithCategory } from '@/types'
 // PUT /api/admin/services/[id] - Update service (admin only)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
+
     // Check admin access
     const authHeader = request.headers.get('authorization')
     if (!authHeader?.startsWith('Bearer ')) {
@@ -27,7 +29,7 @@ export async function PUT(
       }, { status: 403 })
     }
 
-    const serviceId = parseInt(params.id)
+    const serviceId = parseInt(id)
     if (isNaN(serviceId)) {
       return NextResponse.json<ApiResponse>({
         success: false,
@@ -114,9 +116,11 @@ export async function PUT(
 // DELETE /api/admin/services/[id] - Delete service (admin only)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
+
     // Check admin access
     const authHeader = request.headers.get('authorization')
     if (!authHeader?.startsWith('Bearer ')) {
@@ -135,7 +139,7 @@ export async function DELETE(
       }, { status: 403 })
     }
 
-    const serviceId = parseInt(params.id)
+    const serviceId = parseInt(id)
     if (isNaN(serviceId)) {
       return NextResponse.json<ApiResponse>({
         success: false,

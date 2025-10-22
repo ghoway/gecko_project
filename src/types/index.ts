@@ -37,6 +37,20 @@ export type ServiceWithCategory = Service & {
   }
 }
 
+export type ServiceWithoutCookieData = Omit<Service, 'cookie_data'>
+
+export interface GroupedServices {
+  id: number
+  name: string
+  categories: {
+    id: number
+    name: string
+    description: string | null
+    icon_url: string | null
+    services: ServiceWithoutCookieData[]
+  }[]
+}
+
 export type ServiceGroupWithCategories = ServiceGroup & {
   categories: (ServiceCategory & {
     services: Service[]

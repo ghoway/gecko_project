@@ -1,7 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Crown, Check, Star, Sparkles } from 'lucide-react'
 import type { UserWithPlan } from '@/types'
 import type { Plan } from '@prisma/client'
 
@@ -9,7 +13,7 @@ export default function SubscribePage() {
   const [user, setUser] = useState<UserWithPlan | null>(null)
   const [plans, setPlans] = useState<Plan[]>([])
   const [loading, setLoading] = useState(true)
-  const [plansLoading, setPlansLoading] = useState(false)
+  const [plansLoading, setPlansLoading] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -19,7 +23,6 @@ export default function SubscribePage() {
       return
     }
 
-    // Fetch user data from API
     fetchUserData(token)
     fetchPlans()
   }, [router])
@@ -35,7 +38,6 @@ export default function SubscribePage() {
       const data = await response.json()
       if (data.success) {
         setUser(data.data)
-        // If user already has a plan, redirect to dashboard
         if (data.data.current_plan_id) {
           router.push('/dashboard')
         }
@@ -68,7 +70,7 @@ export default function SubscribePage() {
     const token = localStorage.getItem('token')
     if (!token) return
 
-    setPlansLoading(true)
+    setPlansLoading(planId.toString())
     try {
       const response = await fetch('/api/subscriptions/create', {
         method: 'POST',
@@ -81,7 +83,6 @@ export default function SubscribePage() {
 
       const data = await response.json()
       if (data.success) {
-        // Redirect to Midtrans payment page
         window.location.href = data.data.paymentUrl
       } else {
         alert(data.error || 'Failed to create subscription')
@@ -90,7 +91,7 @@ export default function SubscribePage() {
       console.error('Subscription error:', error)
       alert('Failed to create subscription')
     } finally {
-      setPlansLoading(false)
+      setPlansLoading(null)
     }
   }
 
@@ -108,10 +109,29 @@ export default function SubscribePage() {
     router.push('/auth/signin')
   }
 
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+    }).format(price)
+  }
+
+  const formatDuration = (days: number) => {
+    if (days >= 30) {
+      const months = Math.floor(days / 30)
+      return `${months} bulan`
+    }
+    return `${days} hari`
+  }
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-orange-100 via-red-50 to-blue-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading subscription page...</p>
+        </div>
       </div>
     )
   }
@@ -121,69 +141,146 @@ export default function SubscribePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <nav className="bg-white/10 backdrop-blur-lg border-b border-white/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-3xl font-bold text-gray-800">Gecko Store</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-700">Welcome, {user.name}</span>
-              <button
-                onClick={handleLogout}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
-              >
+    <div className="min-h-screen bg-gradient-to-br from-orange-100 via-red-50 to-blue-100 relative overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-20 left-20 w-72 h-72 bg-orange-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+        <div className="absolute top-40 right-20 w-72 h-72 bg-red-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-8 left-40 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+      </div>
+
+      <header className="relative z-10 bg-white/10 backdrop-blur-md border-b border-white/20">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+              <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
+                <Crown className="w-6 h-6 text-white" />
+              </div>
+              <span className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                Gecko Store
+              </span>
+            </Link>
+
+            <nav className="flex items-center space-x-4">
+              <Button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-0" onClick={handleLogout}>
                 Sign Out
-              </button>
-            </div>
+              </Button>
+            </nav>
           </div>
         </div>
-      </nav>
+      </header>
 
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20 p-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Choose Your Plan</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {plans.map((plan) => (
-                <div
-                  key={plan.id}
-                  className={`bg-white/50 backdrop-blur-sm rounded-lg p-6 border-2 ${
-                    plan.is_popular ? 'border-blue-500' : 'border-gray-200'
-                  }`}
-                >
-                  {plan.is_popular && (
-                    <div className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full inline-block mb-2">
-                      Most Popular
-                    </div>
-                  )}
-                  <h4 className="text-xl font-bold text-gray-800 mb-2">{plan.name}</h4>
-                  <div className="mb-4">
-                    <div className="text-3xl font-bold text-blue-600">
-                      Rp {(plan.price * 1.11).toLocaleString()}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      Includes 11% tax • {plan.duration_in_days} days
-                    </div>
-                    <div className="text-xs text-gray-400 mt-1">
-                      Rp {plan.price.toLocaleString()} + Rp {(plan.price * 0.11).toLocaleString()} tax
+      <div className="relative z-10 container mx-auto px-4 py-8">
+        <h1 className="text-4xl font-bold text-center mb-8 bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+          Choose Your Plan
+        </h1>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          {plans.map((plan, index) => {
+            const isPopular = plan.is_popular
+            const isFirst = index === 0
+            const isLast = index === plans.length - 1
+
+            return (
+              <Card
+                key={plan.id}
+                className={`group relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:scale-105 ${
+                  isPopular
+                    ? 'bg-gradient-to-br from-red-50 to-blue-50 via-white/20 backdrop-blur-lg border-2 border-red-400/50 hover:border-red-400/80 transform hover:-translate-y-3 scale-105'
+                    : 'bg-white/10 backdrop-blur-lg border border-white/20 hover:bg-white/25 hover:border-white/40 transform hover:-translate-y-2'
+                }`}
+              >
+                {isPopular && (
+                  <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-red-500 to-blue-500 text-white text-center py-2 text-sm font-semibold">
+                    <div className="flex items-center justify-center gap-1">
+                      <Star className="w-4 h-4 fill-current" />
+                      Paling Populer
                     </div>
                   </div>
-                  <p className="text-gray-600 mb-4">{plan.features ? (Array.isArray(plan.features) ? (plan.features as string[]).join(', ') : 'Access to basic services') : 'Access to basic services'}</p>
-                  <button
+                )}
+
+                <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${
+                  isPopular
+                    ? 'bg-gradient-to-br from-red-500/20 to-blue-500/20'
+                    : isFirst
+                    ? 'bg-gradient-to-br from-orange-500/10 to-red-500/10'
+                    : isLast
+                    ? 'bg-gradient-to-br from-blue-500/10 to-orange-500/10'
+                    : 'bg-gradient-to-br from-orange-500/10 to-red-500/10'
+                }`}></div>
+
+                <CardHeader className={`text-center relative z-10 ${isPopular ? 'pt-12' : ''}`}>
+                  <CardTitle className={`text-2xl transition-colors duration-300 ${
+                    isPopular
+                      ? 'text-gray-800 group-hover:text-red-700'
+                      : isFirst
+                      ? 'text-gray-800 group-hover:text-orange-700'
+                      : isLast
+                      ? 'text-gray-800 group-hover:text-blue-700'
+                      : 'text-gray-800 group-hover:text-orange-700'
+                  }`}>
+                    {plan.name}
+                  </CardTitle>
+                  <div className={`text-4xl font-bold transition-colors duration-300 ${
+                    isPopular
+                      ? 'text-red-600 group-hover:text-red-700'
+                      : isFirst
+                      ? 'text-orange-600 group-hover:text-orange-700'
+                      : isLast
+                      ? 'text-blue-600 group-hover:text-blue-700'
+                      : 'text-orange-600 group-hover:text-orange-700'
+                  }`}>
+                    {formatPrice(plan.price)}
+                  </div>
+                  <CardDescription className="text-gray-600 group-hover:text-gray-700 transition-colors duration-300">
+                    {formatDuration(plan.duration_in_days)} akses
+                  </CardDescription>
+                </CardHeader>
+
+                <CardContent className="relative z-10">
+                  <div className="space-y-3 mb-6">
+                    {plan.features && Array.isArray(plan.features) && (plan.features as string[]).map((feature, featureIndex) => (
+                      <div key={featureIndex} className="flex items-start gap-3">
+                        <Check className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                        <span className="text-sm text-gray-700 group-hover:text-gray-800 transition-colors duration-300">
+                          {feature}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <Button
                     onClick={() => handleSubscribe(plan.id)}
-                    disabled={plansLoading}
-                    className="w-full py-2 px-4 rounded-lg font-semibold transition-colors duration-200 bg-blue-600 hover:bg-blue-700 text-white disabled:bg-blue-400"
+                    disabled={plansLoading === plan.id.toString()}
+                    className={`w-full py-6 text-lg font-semibold transition-all transform hover:scale-105 hover:shadow-lg ${
+                      isPopular
+                        ? 'bg-gradient-to-r from-red-500 to-blue-500 hover:from-red-600 hover:to-blue-600'
+                        : isFirst
+                        ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600'
+                        : isLast
+                        ? 'bg-gradient-to-r from-blue-500 to-orange-500 hover:from-blue-600 hover:to-orange-600'
+                        : 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600'
+                    }`}
                   >
-                    {plansLoading ? 'Processing...' : 'Subscribe Now'}
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
+                    {plansLoading === plan.id.toString() ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        Memproses...
+                      </div>
+                    ) : (
+                      <>
+                        {isPopular && <Sparkles className="w-5 h-5 mr-2" />}
+                        Pilih {plan.name}
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            )
+          })}
         </div>
-      </main>
+      </div>
+
+
     </div>
   )
 }

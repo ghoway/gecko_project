@@ -1,9 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUserFromToken, getAccessibleServices, canAccessService } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import type { ApiResponse, ServiceWithCategory } from '@/types'
+import type { ApiResponse, GroupedServices, ServiceWithoutCookieData } from '@/types'
 
-type ServiceWithoutCookieData = Omit<ServiceWithCategory, 'cookie_data'>
+interface GroupedServicesMap {
+  [groupId: number]: {
+    id: number
+    name: string
+    categories: {
+      [categoryId: number]: {
+        id: number
+        name: string
+        description: string | null
+        icon_url: string | null
+        services: ServiceWithoutCookieData[]
+      }
+    }
+  }
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,15 +42,48 @@ export async function GET(request: NextRequest) {
     // Get accessible services based on user's plan
     const services = await getAccessibleServices(user)
 
-    // Remove cookie_data from response for security
-    const sanitizedServices = services.map(service => {
-      const { cookie_data, ...serviceWithoutCookieData } = service
-      return serviceWithoutCookieData
-    })
+    // Group services by group -> category -> services
+    // Only include active groups and categories
+    const groupedServices = services
+      .filter(service => service.category.is_active && service.category.group.is_active)
+      .reduce((groups, service) => {
+      const groupId = service.category.group.id
+      const categoryId = service.category.id
 
-    return NextResponse.json<ApiResponse<ServiceWithoutCookieData[]>>({
+      if (!groups[groupId]) {
+        groups[groupId] = {
+          id: service.category.group.id,
+          name: service.category.group.name,
+          categories: {}
+        }
+      }
+
+      if (!groups[groupId].categories[categoryId]) {
+        groups[groupId].categories[categoryId] = {
+          id: service.category.id,
+          name: service.category.name,
+          description: service.category.description,
+          icon_url: service.category.icon_url,
+          services: []
+        }
+      }
+
+      // Remove cookie_data and category from response for security and lighter payload
+      const { cookie_data, category, ...serviceWithoutCookieData } = service
+      groups[groupId].categories[categoryId].services.push(serviceWithoutCookieData)
+
+      return groups
+    }, {} as GroupedServicesMap)
+
+    // Convert to array
+    const result = Object.values(groupedServices).map((group) => ({
+      ...group,
+      categories: Object.values(group.categories)
+    })) as GroupedServices[]
+
+    return NextResponse.json<ApiResponse<GroupedServices[]>>({
       success: true,
-      data: sanitizedServices
+      data: result
     })
 
   } catch (error) {
@@ -88,7 +135,8 @@ export async function POST(request: NextRequest) {
 
     // Get the service with cookie_data
     const service = await prisma.service.findUnique({
-      where: { code: serviceCode, is_active: true }
+      where: { code: serviceCode, is_active: true },
+      select: { code: true, cookie_data: true }
     })
 
     if (!service) {
