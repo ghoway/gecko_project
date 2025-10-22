@@ -1,19 +1,20 @@
 // @ts-expect-error - midtrans-client types are not available
 import Midtrans from 'midtrans-client'
 
-const serverKey = process.env.MIDTRANS_SERVER_KEY!
-const clientKey = process.env.MIDTRANS_CLIENT_KEY!
+const isProduction = process.env.MIDTRANS_IS_PRODUCTION === 'true'
+const serverKey = isProduction ? process.env.MIDTRANS_PRODUCTION_SERVER_KEY! : process.env.MIDTRANS_SANDBOX_SERVER_KEY!
+const clientKey = isProduction ? process.env.MIDTRANS_PRODUCTION_CLIENT_KEY! : process.env.MIDTRANS_SANDBOX_CLIENT_KEY!
 
 // Core API
 export const coreApi = new Midtrans.CoreApi({
-  isProduction: false,
+  isProduction,
   serverKey,
   clientKey
 })
 
 // Snap API
 export const snap = new Midtrans.Snap({
-  isProduction: false,
+  isProduction,
   serverKey,
   clientKey
 })

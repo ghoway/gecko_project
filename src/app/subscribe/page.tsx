@@ -126,9 +126,9 @@ export default function SubscribePage() {
   const formatDuration = (days: number) => {
     if (days >= 30) {
       const months = Math.floor(days / 30)
-      return `${months} bulan`
+      return `${months} month`
     }
-    return `${days} hari`
+    return `${days} days`
   }
 
   if (loading) {
@@ -235,7 +235,7 @@ export default function SubscribePage() {
                   <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-red-500 to-blue-500 text-white text-center py-2 text-sm font-semibold">
                     <div className="flex items-center justify-center gap-1">
                       <Star className="w-4 h-4 fill-current" />
-                      Paling Populer
+                      Most Popular
                     </div>
                   </div>
                 )}
@@ -274,7 +274,7 @@ export default function SubscribePage() {
                     {formatPrice(plan.price)}
                   </div>
                   <CardDescription className="text-gray-600 group-hover:text-gray-700 transition-colors duration-300">
-                    {formatDuration(plan.duration_in_days)} akses
+                    {formatDuration(plan.duration_in_days)} Access
                   </CardDescription>
                 </CardHeader>
 
@@ -311,7 +311,7 @@ export default function SubscribePage() {
                     ) : (
                       <>
                         {isPopular && <Sparkles className="w-5 h-5 mr-2" />}
-                        {isRenewal ? `Renew with ${plan.name}` : `Pilih ${plan.name}`}
+                        {isRenewal ? `Renew with ${plan.name}` : `Select ${plan.name}`}
                       </>
                     )}
                   </Button>
