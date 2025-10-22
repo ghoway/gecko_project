@@ -31,10 +31,20 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    return NextResponse.json<ApiResponse>({
+    const nextResponse = NextResponse.json<ApiResponse>({
       success: true,
       message: 'Logged out successfully'
     })
+
+    // Clear the token cookie
+    nextResponse.cookies.set('token', '', {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 0
+    })
+
+    return nextResponse
 
   } catch (error) {
     console.error('Logout error:', error)

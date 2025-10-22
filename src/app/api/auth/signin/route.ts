@@ -81,10 +81,23 @@ export async function POST(request: NextRequest) {
       token
     }
 
-    return NextResponse.json<ApiResponse<AuthResponse>>({
+    const nextResponse = NextResponse.json<ApiResponse<AuthResponse>>({
       success: true,
       data: response
     })
+
+    // Set token in cookie for extension access
+    nextResponse.cookies.set('token', token, {
+      httpOnly: false, // Allow client-side access for extension
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7 // 7 days
+    })
+
+    // Also set in header for additional access
+    nextResponse.headers.set('X-JWT-Token', token)
+
+    return nextResponse
 
   } catch (error) {
     console.error('Login error:', error)
