@@ -14,10 +14,31 @@ export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [plans, setPlans] = useState<Plan[]>([])
   const [plansLoading, setPlansLoading] = useState(true)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   useEffect(() => {
     fetchPlans()
+    checkAuthStatus()
   }, [])
+
+  const checkAuthStatus = async () => {
+    const token = localStorage.getItem('token')
+    if (token) {
+      try {
+        const response = await fetch('/api/auth/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        const data = await response.json()
+        if (data.success) {
+          setIsLoggedIn(true)
+        }
+      } catch (error) {
+        localStorage.removeItem('token')
+      }
+    }
+  }
 
   const fetchPlans = async () => {
     try {
@@ -88,11 +109,19 @@ export default function Home() {
               <a href="#services" className="text-gray-700 hover:text-orange-600 transition-colors">Services</a>
               <a href="#pricing" className="text-gray-700 hover:text-orange-600 transition-colors">Pricing</a>
               <a href="#contact" className="text-gray-700 hover:text-orange-600 transition-colors">Contact</a>
-              <Link href="/auth/signin">
-                <Button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-0">
-                  Sign In
-                </Button>
-              </Link>
+              {isLoggedIn ? (
+                <Link href="/dashboard">
+                  <Button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-0">
+                    Dashboard
+                  </Button>
+                </Link>
+              ) : (
+                <Link href="/auth/signin">
+                  <Button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-0">
+                    Sign In
+                  </Button>
+                </Link>
+              )}
             </nav>
 
             <button
@@ -110,11 +139,19 @@ export default function Home() {
                 <a href="#services" className="text-gray-700 hover:text-orange-600 transition-colors">Services</a>
                 <a href="#pricing" className="text-gray-700 hover:text-orange-600 transition-colors">Pricing</a>
                 <a href="#contact" className="text-gray-700 hover:text-orange-600 transition-colors">Contact</a>
-                <Link href="/auth/signin">
-                <Button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-0 w-full">
-                  Sign In
-                </Button>
-              </Link>
+                {isLoggedIn ? (
+                  <Link href="/dashboard">
+                    <Button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-0 w-full">
+                      Dashboard
+                    </Button>
+                  </Link>
+                ) : (
+                  <Link href="/auth/signin">
+                    <Button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-0 w-full">
+                      Sign In
+                    </Button>
+                  </Link>
+                )}
               </nav>
             </div>
           )}

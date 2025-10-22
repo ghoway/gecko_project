@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Crown, User, Mail, Calendar, CreditCard, ArrowLeft } from 'lucide-react'
+import { Crown, User, Mail, Calendar, CreditCard } from 'lucide-react'
 import type { UserWithPlan } from '@/types'
 
 export default function DashboardPage() {
@@ -63,7 +63,7 @@ export default function DashboardPage() {
     })
   }
 
-  const getDaysUntilExpiry = (dateString?: string) => {
+  const getDaysUntilExpiry = (dateString?: string | Date | null) => {
     if (!dateString) return 0
     const today = new Date()
     const expiryDate = new Date(dateString)
@@ -120,31 +120,17 @@ export default function DashboardPage() {
       <header className="relative z-10 bg-white/10 backdrop-blur-md border-b border-white/20">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/"
-                className="inline-flex items-center text-gray-600 hover:text-orange-600 transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Home
-              </Link>
-              <div className="flex items-center space-x-2">
-                <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
-                  <Crown className="w-6 h-6 text-white" />
-                </div>
-                <span className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-                  Gecko Store
-                </span>
+            <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+              <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
+                <Crown className="w-6 h-6 text-white" />
               </div>
-            </div>
+              <span className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                Gecko Store
+              </span>
+            </Link>
 
-            <nav className="flex items-center space-x-4">
-              <Link href="/subscribe">
-                <Button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white">
-                  Upgrade Plan
-                </Button>
-              </Link>
-              <Button variant="outline" className="bg-white/20 border-white/30 hover:bg-white/30" onClick={handleLogout}>
+            <nav className="flex items-center">
+              <Button className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white border-0" onClick={handleLogout}>
                 Sign Out
               </Button>
             </nav>
@@ -186,7 +172,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex items-center text-gray-700">
                   <Calendar className="w-4 h-4 mr-3 text-red-500" />
-                  <span>Member since: 1 January 2024</span>
+                  <span>Member since: {user?.created_at ? formatDate(new Date(user.created_at).toISOString()) : 'N/A'}</span>
                 </div>
               </div>
             </CardContent>
@@ -215,18 +201,18 @@ export default function DashboardPage() {
                 </span>
               </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-gray-700">Expires:</span>
-                <span className="text-gray-800 font-medium">
-                  {user?.subscription_ends_at ? formatDate(user.subscription_ends_at.toISOString()) : 'N/A'}
-                </span>
-              </div>
+               <div className="flex items-center justify-between">
+                 <span className="text-gray-700">Expires:</span>
+                 <span className="text-gray-800 font-medium">
+                   {user?.subscription_ends_at ? formatDate(new Date(user.subscription_ends_at).toISOString()) : 'N/A'}
+                 </span>
+               </div>
 
               <div className="pt-4 border-t border-white/20">
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-gray-800">
-                    {getDaysUntilExpiry(user?.subscription_ends_at?.toISOString())}
-                  </p>
+                   <p className="text-2xl font-bold text-gray-800">
+                     {getDaysUntilExpiry(user?.subscription_ends_at)}
+                   </p>
                   <p className="text-sm text-gray-600">days remaining</p>
                 </div>
               </div>
