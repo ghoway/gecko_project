@@ -78,7 +78,7 @@ export default function WelcomePage() {
                 <Crown className="w-6 h-6 text-white" />
               </div>
               <span className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-                Gecko Store
+                {process.env.APP_NAME || "Gecko Store"}
               </span>
             </Link>
 
@@ -102,7 +102,7 @@ export default function WelcomePage() {
                 <CheckCircle className="w-10 h-10 text-white" />
               </div>
               <CardTitle className="text-4xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-4">
-                Welcome to Gecko Store!
+                Welcome to {process.env.APP_NAME || "Gecko Store"}!
               </CardTitle>
               <p className="text-lg text-gray-700 leading-relaxed">
                 Extension successfully installed! Welcome to our professional cookie restore platform.

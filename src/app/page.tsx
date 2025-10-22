@@ -8,7 +8,11 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Menu, X, Crown, Play, Palette, MessageSquare, Mail, Phone, MapPin, Check, Star, Sparkles } from 'lucide-react'
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import type { Plan } from '@prisma/client'
+
+gsap.registerPlugin(ScrollTrigger)
 
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -20,6 +24,68 @@ export default function Home() {
     fetchPlans()
     checkAuthStatus()
   }, [])
+
+  useEffect(() => {
+    if (!plansLoading) {
+      // GSAP Scroll Animations - run after plans are loaded
+      const tl = gsap.timeline()
+
+      // Hero animations
+      tl.from('.hero-title', {
+        opacity: 0,
+        y: 50,
+        duration: 1,
+        ease: 'power2.out'
+      })
+      .from('.hero-subtitle', {
+        opacity: 0,
+        y: 30,
+        duration: 0.8,
+        ease: 'power2.out'
+      }, '-=0.5')
+      .from('.hero-button', {
+        opacity: 0,
+        scale: 0.8,
+        duration: 0.6,
+        ease: 'back.out(1.7)'
+      }, '-=0.3')
+
+      // Services section animation
+      gsap.from('.service-card', {
+        scrollTrigger: {
+          trigger: '#services',
+          start: 'top 80%',
+          toggleActions: 'play none none reverse'
+        },
+        opacity: 0,
+        y: 60,
+        duration: 0.8,
+        stagger: 0.2,
+        ease: 'power2.out'
+      })
+
+
+
+      // Contact section animation
+      gsap.from('.contact-section', {
+        scrollTrigger: {
+          trigger: '#contact',
+          start: 'top 80%',
+          toggleActions: 'play none none reverse'
+        },
+        opacity: 0,
+        y: 50,
+        duration: 0.8,
+        ease: 'power2.out'
+      })
+
+      // Cleanup on unmount
+      return () => {
+        ScrollTrigger.getAll().forEach(trigger => trigger.kill())
+        tl.kill()
+      }
+    }
+  }, [plansLoading])
 
   const checkAuthStatus = async () => {
     const token = localStorage.getItem('token')
@@ -162,15 +228,15 @@ export default function Home() {
       <section className="relative z-10 py-20 px-4">
         <div className="container mx-auto text-center">
           <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-12 border border-white/20 shadow-2xl max-w-4xl mx-auto">
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-orange-600 via-red-600 to-blue-600 bg-clip-text text-transparent">
+            <h1 className="hero-title text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-orange-600 via-red-600 to-blue-600 bg-clip-text text-transparent">
               Premium Accounts SAAS
             </h1>
-            <p className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto">
-              Akses semua akun premium favorit Anda dengan satu langganan. Netflix, Canva, Spotify, ChatGPT, dan banyak lagi dalam satu platform terintegrasi.
+            <p className="hero-subtitle text-xl text-gray-700 mb-8 max-w-2xl mx-auto">
+              Access all your favorite premium accounts with one subscription. Netflix, Canva, Spotify, ChatGPT, and many more in one integrated platform.
             </p>
             <Link href="/auth/signup">
-              <Button size="lg" className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white text-lg px-8 py-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-                Mulai Berlangganan
+              <Button size="lg" className="hero-button bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white text-lg px-8 py-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                Start Subscription
               </Button>
             </Link>
           </div>
@@ -181,7 +247,7 @@ export default function Home() {
       <section id="services" className="relative z-10 py-20 px-4">
         <div className="container mx-auto">
           <h2 className="text-4xl font-bold text-center mb-12 bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-            Platform Tersedia
+            Available Platforms
           </h2>
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             <Card className="bg-white/10 backdrop-blur-lg border border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:scale-105">
@@ -196,7 +262,7 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700">
-                  Nikmati konten streaming premium tanpa batas dari semua platform favorit Anda dengan satu langganan.
+                  Enjoy unlimited premium streaming content from all your favorite platforms with one subscription.
                 </p>
               </CardContent>
             </Card>
@@ -213,7 +279,7 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700">
-                  Akses tools kreatif dan produktivitas premium untuk meningkatkan kualitas kerja dan konten Anda.
+                  Access premium creative and productivity tools to enhance your work and content quality.
                 </p>
               </CardContent>
             </Card>
@@ -230,7 +296,7 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700">
-                  Dapatkan akses ke AI tools canggih dan streaming musik premium untuk produktivitas dan hiburan.
+                  Get access to advanced AI tools and premium music streaming for productivity and entertainment.
                 </p>
               </CardContent>
             </Card>
@@ -241,9 +307,9 @@ export default function Home() {
        {/* Pricing Section */}
        <section id="pricing" className="relative z-10 py-20 px-4">
          <div className="container mx-auto">
-           <h2 className="text-4xl font-bold text-center mb-12 bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-             Pilihan Langganan
-           </h2>
+            <h2 className="text-4xl font-bold text-center mb-12 bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+              Subscription Plans
+            </h2>
 
            {plansLoading ? (
              <div className="flex justify-center items-center py-12">
@@ -257,14 +323,14 @@ export default function Home() {
                  const isLast = index === finalSortedPlans.length - 1
 
                  return (
-                   <Card
-                     key={plan.id}
-                     className={`group relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:scale-105 ${
-                       isPopular
-                         ? 'bg-gradient-to-br from-red-50 to-blue-50 via-white/20 backdrop-blur-lg border-2 border-red-400/50 hover:border-red-400/80 transform hover:-translate-y-3 scale-105'
-                         : 'bg-white/10 backdrop-blur-lg border border-white/20 hover:bg-white/25 hover:border-white/40 transform hover:-translate-y-2'
-                     }`}
-                   >
+                    <Card
+                      key={plan.id}
+                      className={`group relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:scale-105 ${
+                        isPopular
+                          ? 'bg-gradient-to-br from-red-50 to-blue-50 via-white/20 backdrop-blur-lg border-2 border-red-400/50 hover:border-red-400/80 transform hover:-translate-y-3 scale-105'
+                          : 'bg-white/10 backdrop-blur-lg border border-white/20 hover:bg-white/25 hover:border-white/40 transform hover:-translate-y-2'
+                      }`}
+                    >
                      {isPopular && (
                        <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-red-500 to-blue-500 text-white text-center py-2 text-sm font-semibold">
                          <div className="flex items-center justify-center gap-1">
@@ -335,7 +401,7 @@ export default function Home() {
                              : 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600'
                          }`}>
                            {isPopular && <Sparkles className="w-5 h-5 mr-2" />}
-                           Mulai Berlangganan
+                            Start Subscription
                          </Button>
                        </Link>
                      </CardContent>
@@ -348,60 +414,22 @@ export default function Home() {
        </section>
 
       {/* Contact Section */}
-      <section id="contact" className="relative z-10 py-20 px-4">
+       <section id="contact" className="contact-section relative z-10 py-20 px-4">
         <div className="container mx-auto max-w-4xl">
           <h2 className="text-4xl font-bold text-center mb-12 bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-            Hubungi Kami
+            Contact Us
           </h2>
           <Card className="bg-white/10 backdrop-blur-lg border border-white/20">
             <CardContent className="p-8">
-              <div className="grid md:grid-cols-2 gap-8">
-                <div className="space-y-6">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
-                      <Mail className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-gray-800">Email</p>
-                      <p className="text-gray-600">support@geckostore.com</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-blue-500 rounded-lg flex items-center justify-center">
-                      <Phone className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-gray-800">WhatsApp</p>
-                      <p className="text-gray-600">+62 812-3456-7890</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-orange-500 rounded-lg flex items-center justify-center">
-                      <MapPin className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-gray-800">Jam Operasional</p>
-                      <p className="text-gray-600">Senin - Minggu, 24/7</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="name" className="text-gray-700">Nama Lengkap</Label>
-                    <Input id="name" placeholder="Nama Anda" className="bg-white/20 border-white/30 placeholder-gray-500" />
+              <div className="flex justify-center">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
+                    <Mail className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <Label htmlFor="email" className="text-gray-700">Email</Label>
-                    <Input id="email" type="email" placeholder="email@example.com" className="bg-white/20 border-white/30 placeholder-gray-500" />
+                    <p className="font-semibold text-gray-800">Email</p>
+                    <p className="text-gray-600">support@geckostore.my.id</p>
                   </div>
-                  <div>
-                    <Label htmlFor="message" className="text-gray-700">Pesan</Label>
-                    <Textarea id="message" placeholder="Tuliskan pesan Anda..." rows={4} className="bg-white/20 border-white/30 placeholder-gray-500" />
-                  </div>
-                  <Button className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white">
-                    Kirim Pesan
-                  </Button>
                 </div>
               </div>
             </CardContent>

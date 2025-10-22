@@ -103,7 +103,7 @@ export default function SigninPage() {
               </div>
             </div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent mb-2">Welcome Back</h1>
-            <p className="text-gray-600">Sign in to your Gecko Store account</p>
+            <p className="text-gray-600">Sign in to your {process.env.APP_NAME || "Gecko Store"} account</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">

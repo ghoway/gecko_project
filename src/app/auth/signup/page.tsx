@@ -114,7 +114,7 @@ export default function SignupPage() {
               </div>
             </div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent mb-2">Create Account</h1>
-            <p className="text-gray-600">Join Gecko Store today</p>
+            <p className="text-gray-600">Join {process.env.APP_NAME || "Gecko Store"} today</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">

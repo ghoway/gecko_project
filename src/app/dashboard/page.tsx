@@ -123,7 +123,7 @@ export default function DashboardPage() {
                 <Crown className="w-6 h-6 text-white" />
               </div>
               <span className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-                Gecko Store
+                {process.env.APP_NAME || "Gecko Store"}
               </span>
             </Link>
 

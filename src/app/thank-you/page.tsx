@@ -78,7 +78,7 @@ export default function ThankYouPage() {
                 <Crown className="w-6 h-6 text-white" />
               </div>
               <span className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-                Gecko Store
+                {process.env.APP_NAME || "Gecko Store"}
               </span>
             </Link>
 
@@ -105,7 +105,7 @@ export default function ThankYouPage() {
                 Thank You for Your Purchase!
               </CardTitle>
               <p className="text-lg text-gray-700 leading-relaxed">
-                Your payment has been successfully processed. Welcome to Gecko Store!
+                Your payment has been successfully processed. Welcome to {process.env.APP_NAME || "Gecko Store"}!
                 Your subscription is now active and you can start enjoying all the premium features.
               </p>
             </CardHeader>

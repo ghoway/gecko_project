@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Gecko Store - SaaS Cookie Restore App",
+  title: `${process.env.APP_NAME || "Gecko Store"} - SaaS Cookie Restore App`,
   description: "Professional cookie restore service with subscription management",
 };
 
