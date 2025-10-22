@@ -50,9 +50,12 @@ export const getUserFromToken = async (token: string) => {
 
   if (!user || user.sessions.length === 0) return null
 
+  const session = user.sessions[0]
+  if (session.expires_at <= new Date()) return null
+
   // Update last activity
   await prisma.session.update({
-    where: { id: user.sessions[0].id },
+    where: { id: session.id },
     data: { last_activity_at: new Date() }
   })
 

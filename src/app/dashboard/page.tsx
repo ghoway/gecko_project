@@ -6,10 +6,10 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Crown, User, Mail, Calendar, CreditCard } from 'lucide-react'
-import type { UserWithPlan } from '@/types'
+import type { UserWithSubscription } from '@/types'
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<UserWithPlan | null>(null)
+  const [user, setUser] = useState<UserWithSubscription | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
@@ -35,10 +35,7 @@ export default function DashboardPage() {
       const data = await response.json()
       if (data.success) {
         setUser(data.data)
-        // If user doesn't have a subscription, redirect to subscribe page
-        if (!data.data.current_plan_id) {
-          router.push('/subscribe')
-        }
+        // Allow access to dashboard regardless of subscription status
       } else {
         localStorage.removeItem('token')
         router.push('/auth/signin')
@@ -161,7 +158,7 @@ export default function DashboardPage() {
                 </div>
                 <div>
                   <p className="font-semibold text-gray-800">{user?.name || 'User'}</p>
-                  <p className="text-sm text-gray-600">{user?.plan?.name || 'No Plan'} Member</p>
+                  <p className="text-sm text-gray-600">{user?.subscription?.plan?.name || 'No Plan'} Member</p>
                 </div>
               </div>
 
@@ -187,31 +184,35 @@ export default function DashboardPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-700">Current Plan:</span>
-                <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getPlanColor(user?.plan?.name)}`}>
-                  {user?.plan?.name || 'No Plan'}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <span className="text-gray-700">Status:</span>
-                <span className="px-3 py-1 rounded-full text-sm font-semibold text-green-600 bg-green-100">
-                  Active
-                </span>
-              </div>
-
                <div className="flex items-center justify-between">
-                 <span className="text-gray-700">Expires:</span>
-                 <span className="text-gray-800 font-medium">
-                   {user?.subscription_ends_at ? formatDate(new Date(user.subscription_ends_at).toISOString()) : 'N/A'}
+                 <span className="text-gray-700">Current Plan:</span>
+                 <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getPlanColor(user?.subscription?.plan?.name)}`}>
+                   {user?.subscription?.plan?.name || 'No Plan'}
                  </span>
                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-700">Status:</span>
+                  <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                    user?.subscription?.status === 'active'
+                      ? 'text-green-600 bg-green-100'
+                      : 'text-red-600 bg-red-100'
+                  }`}>
+                    {user?.subscription?.status === 'active' ? 'Active' : 'No Active Plan'}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-700">Expires:</span>
+                  <span className="text-gray-800 font-medium">
+                    {user?.subscription?.ends_at ? formatDate(new Date(user.subscription.ends_at).toISOString()) : 'N/A'}
+                  </span>
+                </div>
 
               <div className="pt-4 border-t border-white/20">
                 <div className="text-center">
                    <p className="text-2xl font-bold text-gray-800">
-                     {getDaysUntilExpiry(user?.subscription_ends_at)}
+                     {getDaysUntilExpiry(user?.subscription?.ends_at)}
                    </p>
                   <p className="text-sm text-gray-600">days remaining</p>
                 </div>
@@ -219,6 +220,34 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Subscription Renewal Prompt */}
+        {(!user?.subscription || getDaysUntilExpiry(user?.subscription?.ends_at) <= 7) && (
+          <div className="max-w-4xl mx-auto mb-8">
+            <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-yellow-800 mb-2">
+                      {!user?.subscription ? 'No Active Subscription' : 'Subscription Expiring Soon'}
+                    </h3>
+                    <p className="text-yellow-700">
+                      {!user?.subscription
+                        ? 'Subscribe to access premium services and accounts.'
+                        : `Your subscription expires in ${getDaysUntilExpiry(user?.subscription?.ends_at)} days. Renew now to maintain access.`
+                      }
+                    </p>
+                  </div>
+                  <Link href="/subscribe">
+                    <Button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white">
+                      {!user?.subscription ? 'Subscribe Now' : 'Renew Subscription'}
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Services Access Section */}
         <div className="max-w-6xl mx-auto">

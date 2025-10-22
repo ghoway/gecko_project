@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getUserFromToken } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -20,15 +21,9 @@ export async function middleware(request: NextRequest) {
     user = await getUserFromToken(token)
   }
 
-  // If user is authenticated and trying to access auth pages, redirect based on subscription status
+  // If user is authenticated and trying to access auth pages, redirect to dashboard
   if (user && pathname.startsWith('/auth/')) {
-    // Check if user has active subscription
-    const hasActiveSubscription = user.subscription_ends_at && user.subscription_ends_at > new Date()
-    if (hasActiveSubscription) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
-    } else {
-      return NextResponse.redirect(new URL('/subscribe', request.url))
-    }
+    return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
   // Public routes that don't require authentication
@@ -39,9 +34,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Protected routes (require authentication AND active subscription for most APIs)
-  const protectedRoutes = ['/dashboard', '/admin', '/api/services', '/api/subscriptions']
+  // Protected routes (require authentication, subscription only for specific APIs)
+  const protectedRoutes = ['/dashboard', '/subscribe', '/admin']
+  const subscriptionRequiredAPIs = ['/api/services', '/api/subscriptions']
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
+  const requiresSubscription = subscriptionRequiredAPIs.some(route => pathname.startsWith(route))
 
   if (isProtectedRoute) {
     if (!token || !user) {
@@ -56,16 +53,29 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/auth/signin', request.url))
     }
 
-    // Check subscription for API routes (except admin routes)
-    if (pathname.startsWith('/api/') && !pathname.startsWith('/api/admin/') && !user.is_admin) {
-      // Check if user has active subscription
-      const hasActiveSubscription = user.subscription_ends_at && user.subscription_ends_at > new Date()
-      if (!hasActiveSubscription) {
+    // Check subscription for specific API routes
+    if (requiresSubscription && !user.is_admin) {
+      // Check if user has active subscription from subscriptions table
+      // Get the most recent active subscription
+      const activeSubscription = await prisma.subscription.findFirst({
+        where: {
+          user_id: user.id,
+          status: 'active',
+          ends_at: {
+            gt: new Date()
+          }
+        },
+        orderBy: {
+          ends_at: 'desc'
+        }
+      })
+
+      if (!activeSubscription) {
         return NextResponse.json(
           {
             success: false,
             error: 'Active subscription required',
-            redirect: '/dashboard'
+            redirect: '/subscribe'
           },
           { status: 403 }
         )

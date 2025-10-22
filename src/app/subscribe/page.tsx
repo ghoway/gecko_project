@@ -38,9 +38,7 @@ export default function SubscribePage() {
       const data = await response.json()
       if (data.success) {
         setUser(data.data)
-        if (data.data.current_plan_id) {
-          router.push('/dashboard')
-        }
+        // Allow access to subscribe page regardless of subscription status
       } else {
         localStorage.removeItem('token')
         router.push('/auth/signin')

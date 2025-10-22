@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
 import { getUserFromToken } from '@/lib/auth'
-import type { ApiResponse, UserWithPlan } from '@/types'
+import type { ApiResponse, UserWithSubscription } from '@/types'
 
 export async function GET(request: NextRequest) {
   try {
@@ -22,13 +23,45 @@ export async function GET(request: NextRequest) {
       }, { status: 401 })
     }
 
-    // Return user without password
-    const userResponse: UserWithPlan = {
+    // Get active subscription (most recent)
+    const activeSubscription = await prisma.subscription.findFirst({
+      where: {
+        user_id: user.id,
+        status: 'active',
+        ends_at: {
+          gt: new Date()
+        }
+      },
+      include: {
+        plan: true
+      },
+      orderBy: {
+        ends_at: 'desc'
+      }
+    })
+
+    // Get user sessions
+    const userSessions = await prisma.session.findMany({
+      where: {
+        user_id: user.id,
+        expires_at: {
+          gt: new Date()
+        }
+      },
+      orderBy: {
+        last_activity_at: 'desc'
+      }
+    })
+
+    // Return user with subscription and sessions data
+    const userResponse: UserWithSubscription = {
       ...user,
-      password: ''
+      password: '',
+      subscription: activeSubscription || null,
+      sessions: userSessions
     }
 
-    return NextResponse.json<ApiResponse<UserWithPlan>>({
+    return NextResponse.json<ApiResponse<UserWithSubscription>>({
       success: true,
       data: userResponse
     })
