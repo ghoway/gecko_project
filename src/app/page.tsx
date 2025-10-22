@@ -4,10 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
-import { Menu, X, Crown, Play, Palette, MessageSquare, Mail, Phone, MapPin, Check, Star, Sparkles } from 'lucide-react'
+import { Menu, X, Crown, Play, Palette, MessageSquare, Mail, Check, Star, Sparkles } from 'lucide-react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import type { Plan } from '@prisma/client'
@@ -24,6 +21,39 @@ export default function Home() {
     fetchPlans()
     checkAuthStatus()
   }, [])
+
+  const checkAuthStatus = async () => {
+    const token = localStorage.getItem('token')
+    if (token) {
+      try {
+        const response = await fetch('/api/auth/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        const data = await response.json()
+        if (data.success) {
+          setIsLoggedIn(true)
+        }
+      } catch (error) {
+        localStorage.removeItem('token')
+      }
+    }
+  }
+
+  const fetchPlans = async () => {
+    try {
+      const response = await fetch('/api/plans')
+      const data = await response.json()
+      if (data.success) {
+        setPlans(data.data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch plans:', error)
+    } finally {
+      setPlansLoading(false)
+    }
+  }
 
   useEffect(() => {
     if (!plansLoading) {
@@ -64,8 +94,6 @@ export default function Home() {
         ease: 'power2.out'
       })
 
-
-
       // Contact section animation
       gsap.from('.contact-section', {
         scrollTrigger: {
@@ -86,39 +114,6 @@ export default function Home() {
       }
     }
   }, [plansLoading])
-
-  const checkAuthStatus = async () => {
-    const token = localStorage.getItem('token')
-    if (token) {
-      try {
-        const response = await fetch('/api/auth/me', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        })
-        const data = await response.json()
-        if (data.success) {
-          setIsLoggedIn(true)
-        }
-      } catch (error) {
-        localStorage.removeItem('token')
-      }
-    }
-  }
-
-  const fetchPlans = async () => {
-    try {
-      const response = await fetch('/api/plans')
-      const data = await response.json()
-      if (data.success) {
-        setPlans(data.data)
-      }
-    } catch (error) {
-      console.error('Failed to fetch plans:', error)
-    } finally {
-      setPlansLoading(false)
-    }
-  }
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('id-ID', {

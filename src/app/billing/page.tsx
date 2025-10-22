@@ -15,6 +15,9 @@ interface Transaction {
   midtrans_transaction_id?: string
   payment_type?: string
   created_at: string
+  plan_id: number
+  redirect_url?: string
+  metadata?: any
   plan: {
     name: string
     price: number
@@ -83,6 +86,14 @@ export default function BillingPage() {
       case 'failed': return 'text-red-600 bg-red-100'
       case 'expired': return 'text-gray-600 bg-gray-100'
       default: return 'text-gray-600 bg-gray-100'
+    }
+  }
+
+  const handlePayNow = (transaction: Transaction) => {
+    if (transaction.redirect_url) {
+      window.location.href = transaction.redirect_url
+    } else {
+      alert('Payment link not available. Please contact support.')
     }
   }
 
@@ -212,35 +223,45 @@ export default function BillingPage() {
                     </span>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center text-gray-700">
-                        <CreditCard className="w-4 h-4 mr-3 text-orange-500" />
-                        <span>Plan: {transaction.plan.name}</span>
-                      </div>
-                      <div className="flex items-center text-gray-700">
-                        <Calendar className="w-4 h-4 mr-3 text-red-500" />
-                        <span>Date: {formatDate(transaction.created_at)}</span>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="text-sm text-gray-600">
-                        <strong>Order ID:</strong> {transaction.midtrans_order_id}
-                      </div>
-                      {transaction.midtrans_transaction_id && (
-                        <div className="text-sm text-gray-600">
-                          <strong>Transaction ID:</strong> {transaction.midtrans_transaction_id}
-                        </div>
-                      )}
-                      {transaction.payment_type && (
-                        <div className="text-sm text-gray-600">
-                          <strong>Payment Method:</strong> {transaction.payment_type}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
+                 <CardContent className="space-y-4">
+                   <div className="grid md:grid-cols-2 gap-4">
+                     <div className="space-y-2">
+                       <div className="flex items-center text-gray-700">
+                         <CreditCard className="w-4 h-4 mr-3 text-orange-500" />
+                         <span>Plan: {transaction.plan.name}</span>
+                       </div>
+                       <div className="flex items-center text-gray-700">
+                         <Calendar className="w-4 h-4 mr-3 text-red-500" />
+                         <span>Date: {formatDate(transaction.created_at)}</span>
+                       </div>
+                     </div>
+                     <div className="space-y-2">
+                       <div className="text-sm text-gray-600">
+                         <strong>Order ID:</strong> {transaction.midtrans_order_id}
+                       </div>
+                       {transaction.midtrans_transaction_id && (
+                         <div className="text-sm text-gray-600">
+                           <strong>Transaction ID:</strong> {transaction.midtrans_transaction_id}
+                         </div>
+                       )}
+                       {transaction.payment_type && (
+                         <div className="text-sm text-gray-600">
+                           <strong>Payment Method:</strong> {transaction.payment_type}
+                         </div>
+                       )}
+                     </div>
+                   </div>
+                   {transaction.status === 'pending' && (
+                     <div className="pt-4 border-t border-gray-200">
+                       <Button
+                         onClick={() => handlePayNow(transaction)}
+                         className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
+                       >
+                         Pay Now
+                       </Button>
+                     </div>
+                   )}
+                 </CardContent>
               </Card>
             ))}
           </div>
