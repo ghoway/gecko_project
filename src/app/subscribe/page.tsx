@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Crown, Check, Star, Sparkles } from 'lucide-react'
+import { Crown, Check, Star, Sparkles, Menu, X } from 'lucide-react'
 import type { UserWithPlan } from '@/types'
 import type { Plan } from '@prisma/client'
 
@@ -14,6 +14,8 @@ export default function SubscribePage() {
   const [plans, setPlans] = useState<Plan[]>([])
   const [loading, setLoading] = useState(true)
   const [plansLoading, setPlansLoading] = useState<string | null>(null)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isRenewal, setIsRenewal] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -38,6 +40,12 @@ export default function SubscribePage() {
       const data = await response.json()
       if (data.success) {
         setUser(data.data)
+        // Check if this is a renewal (user has existing subscription)
+        const hasExistingSubscription = data.data.subscription && (
+          data.data.subscription.status === 'active' ||
+          new Date(data.data.subscription.ends_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // Within last 7 days
+        )
+        setIsRenewal(hasExistingSubscription)
         // Allow access to subscribe page regardless of subscription status
       } else {
         localStorage.removeItem('token')
@@ -158,18 +166,54 @@ export default function SubscribePage() {
               </span>
             </Link>
 
-            <nav className="flex items-center space-x-4">
-              <Button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-0" onClick={handleLogout}>
+            <nav className="hidden md:flex items-center space-x-8">
+              <Link href="/dashboard" className="text-gray-700 hover:text-orange-600 transition-colors">
+                Dashboard
+              </Link>
+              <Link href="/subscribe" className="text-orange-600 hover:text-orange-700 transition-colors font-medium">
+                Subscribe
+              </Link>
+              <Link href="/billing" className="text-gray-700 hover:text-orange-600 transition-colors">
+                Billing
+              </Link>
+              <Button className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-red-600 text-white border-0" onClick={handleLogout}>
                 Sign Out
               </Button>
             </nav>
+
+            <button
+              className="md:hidden text-gray-700"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              {isMenuOpen ? <X /> : <Menu />}
+            </button>
           </div>
+
+          {/* Mobile menu */}
+          {isMenuOpen && (
+            <div className="md:hidden mt-4 pb-4 border-t border-white/20 pt-4">
+              <nav className="flex flex-col space-y-4">
+                <Link href="/dashboard" className="text-gray-700 hover:text-orange-600 transition-colors" onClick={() => setIsMenuOpen(false)}>
+                  Dashboard
+                </Link>
+                <Link href="/subscribe" className="text-orange-600 hover:text-orange-700 transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
+                  Subscribe
+                </Link>
+                <Link href="/billing" className="text-gray-700 hover:text-orange-600 transition-colors" onClick={() => setIsMenuOpen(false)}>
+                  Billing
+                </Link>
+                <Button className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-red-600 text-white border-0 w-full" onClick={handleLogout}>
+                  Sign Out
+                </Button>
+              </nav>
+            </div>
+          )}
         </div>
       </header>
 
       <div className="relative z-10 container mx-auto px-4 py-8">
         <h1 className="text-4xl font-bold text-center mb-8 bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-          Choose Your Plan
+          {isRenewal ? 'Renew Your Subscription' : 'Choose Your Plan'}
         </h1>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
@@ -267,7 +311,7 @@ export default function SubscribePage() {
                     ) : (
                       <>
                         {isPopular && <Sparkles className="w-5 h-5 mr-2" />}
-                        Pilih {plan.name}
+                        {isRenewal ? `Renew with ${plan.name}` : `Pilih ${plan.name}`}
                       </>
                     )}
                   </Button>

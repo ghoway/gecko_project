@@ -46,16 +46,25 @@ export async function POST(request: NextRequest) {
       }, { status: 404 })
     }
 
-    // Check if user already has an active subscription
+    // Check if user already has a subscription
     const existingSubscription = await prisma.subscription.findUnique({
       where: { user_id: user.id }
     })
 
-    if (existingSubscription && existingSubscription.status === 'active') {
-      return NextResponse.json<ApiResponse>({
-        success: false,
-        error: 'You already have an active subscription'
-      }, { status: 400 })
+    if (existingSubscription) {
+      // Check if subscription is still active and not expiring soon
+      const now = new Date()
+      const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+      const isActiveAndNotExpiringSoon = existingSubscription.status === 'active' && existingSubscription.ends_at > sevenDaysFromNow
+
+      if (isActiveAndNotExpiringSoon) {
+        return NextResponse.json<ApiResponse>({
+          success: false,
+          error: 'You already have an active subscription'
+        }, { status: 400 })
+      }
+
+      // If subscription is expired or expiring within 7 days, allow renewal
     }
 
     // Calculate tax

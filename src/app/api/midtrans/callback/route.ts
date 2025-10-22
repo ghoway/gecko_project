@@ -66,13 +66,32 @@ export async function POST(request: NextRequest) {
 
     // If payment successful, create/update subscription
     if (newStatus === 'success') {
-      const subscriptionEndDate = new Date()
-      subscriptionEndDate.setDate(subscriptionEndDate.getDate() + transaction.plan.duration_in_days)
-
       // Check if subscription exists
       const existingSubscription = await prisma.subscription.findUnique({
         where: { user_id: transaction.user_id }
       })
+
+      let subscriptionStartDate = new Date()
+      let subscriptionEndDate = new Date()
+
+      if (existingSubscription) {
+        // For renewal/extension
+        if (existingSubscription.status === 'active' && existingSubscription.ends_at > new Date()) {
+          // Extend from current end date
+          subscriptionStartDate = existingSubscription.ends_at
+          subscriptionEndDate = new Date(existingSubscription.ends_at)
+        } else {
+          // Subscription expired or inactive, start from today
+          subscriptionStartDate = new Date()
+          subscriptionEndDate = new Date()
+        }
+      } else {
+        // New subscription
+        subscriptionStartDate = new Date()
+        subscriptionEndDate = new Date()
+      }
+
+      subscriptionEndDate.setDate(subscriptionEndDate.getDate() + transaction.plan.duration_in_days)
 
       if (existingSubscription) {
         // Update existing subscription
@@ -80,7 +99,7 @@ export async function POST(request: NextRequest) {
           where: { id: existingSubscription.id },
           data: {
             status: 'active',
-            starts_at: new Date(),
+            starts_at: subscriptionStartDate,
             ends_at: subscriptionEndDate,
             plan_id: transaction.plan_id
           }
@@ -92,7 +111,7 @@ export async function POST(request: NextRequest) {
             user_id: transaction.user_id,
             plan_id: transaction.plan_id,
             status: 'active',
-            starts_at: new Date(),
+            starts_at: subscriptionStartDate,
             ends_at: subscriptionEndDate
           }
         })

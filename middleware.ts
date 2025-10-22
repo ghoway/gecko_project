@@ -35,7 +35,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Protected routes (require authentication, subscription only for specific APIs)
-  const protectedRoutes = ['/dashboard', '/subscribe', '/admin']
+  const protectedRoutes = ['/dashboard', '/subscribe', '/billing', '/admin']
   const subscriptionRequiredAPIs = ['/api/services', '/api/subscriptions']
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
   const requiresSubscription = subscriptionRequiredAPIs.some(route => pathname.startsWith(route))

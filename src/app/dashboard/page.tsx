@@ -5,12 +5,13 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Crown, User, Mail, Calendar, CreditCard } from 'lucide-react'
+import { Crown, User, Mail, Calendar, CreditCard, Menu, X } from 'lucide-react'
 import type { UserWithSubscription } from '@/types'
 
 export default function DashboardPage() {
   const [user, setUser] = useState<UserWithSubscription | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -126,12 +127,48 @@ export default function DashboardPage() {
               </span>
             </Link>
 
-            <nav className="flex items-center">
+            <nav className="hidden md:flex items-center space-x-8">
+              <Link href="/dashboard" className="text-orange-600 hover:text-orange-700 transition-colors font-medium">
+                Dashboard
+              </Link>
+              <Link href="/subscribe" className="text-gray-700 hover:text-orange-600 transition-colors">
+                Subscribe
+              </Link>
+              <Link href="/billing" className="text-gray-700 hover:text-orange-600 transition-colors">
+                Billing
+              </Link>
               <Button className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white border-0" onClick={handleLogout}>
                 Sign Out
               </Button>
             </nav>
+
+            <button
+              className="md:hidden text-gray-700"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              {isMenuOpen ? <X /> : <Menu />}
+            </button>
           </div>
+
+          {/* Mobile menu */}
+          {isMenuOpen && (
+            <div className="md:hidden mt-4 pb-4 border-t border-white/20 pt-4">
+              <nav className="flex flex-col space-y-4">
+                <Link href="/dashboard" className="text-orange-600 hover:text-orange-700 transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
+                  Dashboard
+                </Link>
+                <Link href="/subscribe" className="text-gray-700 hover:text-orange-600 transition-colors" onClick={() => setIsMenuOpen(false)}>
+                  Subscribe
+                </Link>
+                <Link href="/billing" className="text-gray-700 hover:text-orange-600 transition-colors" onClick={() => setIsMenuOpen(false)}>
+                  Billing
+                </Link>
+                <Button className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-red-600 text-white border-0 w-full" onClick={handleLogout}>
+                  Sign Out
+                </Button>
+              </nav>
+            </div>
+          )}
         </div>
       </header>
 
