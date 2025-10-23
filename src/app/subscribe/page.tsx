@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import Navigation from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Crown, Check, Star, Sparkles, Menu, X } from 'lucide-react'
+import { Check, Star, Sparkles } from 'lucide-react'
 import type { UserWithPlan } from '@/types'
 import type { Plan } from '@prisma/client'
 
@@ -14,7 +14,6 @@ export default function SubscribePage() {
   const [plans, setPlans] = useState<Plan[]>([])
   const [loading, setLoading] = useState(true)
   const [plansLoading, setPlansLoading] = useState<string | null>(null)
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isRenewal, setIsRenewal] = useState(false)
   const router = useRouter()
 
@@ -101,19 +100,7 @@ export default function SubscribePage() {
     }
   }
 
-  const handleLogout = async () => {
-    const token = localStorage.getItem('token')
-    if (token) {
-      await fetch('/api/auth/signout', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-    }
-    localStorage.removeItem('token')
-    router.push('/auth/signin')
-  }
+
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -154,62 +141,7 @@ export default function SubscribePage() {
         <div className="absolute -bottom-8 left-40 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
       </div>
 
-      <header className="relative z-10 bg-white/10 backdrop-blur-md border-b border-white/20">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-              <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
-                <Crown className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-                {process.env.APP_NAME || "Gecko Store"}
-              </span>
-            </Link>
-
-            <nav className="hidden md:flex items-center space-x-8">
-              <Link href="/dashboard" className="text-gray-700 hover:text-orange-600 transition-colors">
-                Dashboard
-              </Link>
-              <Link href="/subscribe" className="text-orange-600 hover:text-orange-700 transition-colors font-medium">
-                Subscribe
-              </Link>
-              <Link href="/billing" className="text-gray-700 hover:text-orange-600 transition-colors">
-                Billing
-              </Link>
-              <Button className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-red-600 text-white border-0" onClick={handleLogout}>
-                Sign Out
-              </Button>
-            </nav>
-
-            <button
-              className="md:hidden text-gray-700"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              {isMenuOpen ? <X /> : <Menu />}
-            </button>
-          </div>
-
-          {/* Mobile menu */}
-          {isMenuOpen && (
-            <div className="md:hidden mt-4 pb-4 border-t border-white/20 pt-4">
-              <nav className="flex flex-col space-y-4">
-                <Link href="/dashboard" className="text-gray-700 hover:text-orange-600 transition-colors" onClick={() => setIsMenuOpen(false)}>
-                  Dashboard
-                </Link>
-                <Link href="/subscribe" className="text-orange-600 hover:text-orange-700 transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
-                  Subscribe
-                </Link>
-                <Link href="/billing" className="text-gray-700 hover:text-orange-600 transition-colors" onClick={() => setIsMenuOpen(false)}>
-                  Billing
-                </Link>
-                <Button className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-red-600 text-white border-0 w-full" onClick={handleLogout}>
-                  Sign Out
-                </Button>
-              </nav>
-            </div>
-          )}
-        </div>
-      </header>
+      <Navigation />
 
       <div className="relative z-10 container mx-auto px-4 py-8">
         <h1 className="text-4xl font-bold text-center mb-8 bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">

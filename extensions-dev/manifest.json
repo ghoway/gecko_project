@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "Gecko Store Tools",
+  "version": "1.0",
+  "description": "Gecko Store extension with glassmorphism UI",
+  "homepage_url": "https://dev.geckostore.my.id",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "cookies",
+    "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://dev.geckostore.my.id/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [{
+    "matches": ["https://dev.geckostore.my.id/*"],
+    "js": ["content-script.js"]
+  }],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

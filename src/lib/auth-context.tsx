@@ -70,6 +70,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (data.success) {
       localStorage.setItem('token', data.data.token)
       setUser(data.data.user)
+
+      // Sync token with extension
+      window.postMessage({
+        type: 'JWT_TOKEN_UPDATE',
+        token: data.data.token,
+        userId: data.data.user.id
+      }, '*')
+
       router.push('/dashboard')
     } else {
       throw new Error(data.error || 'Login failed')
@@ -93,6 +101,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     localStorage.removeItem('token')
     setUser(null)
+
+    // Clear token from extension
+    window.postMessage({
+      type: 'JWT_TOKEN_UPDATE',
+      token: null,
+      userId: null
+    }, '*')
+
     router.push('/auth/signin')
   }
 

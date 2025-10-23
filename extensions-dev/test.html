@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Extension Test Page</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 8px; }
+    .success { background: #d4edda; border-color: #c3e6cb; }
+    .error { background: #f8d7da; border-color: #f5c6cb; }
+    button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+    .token-display { background: #f8f9fa; padding: 10px; border-radius: 4px; font-family: monospace; word-break: break-all; }
+  </style>
+</head>
+<body>
+  <h1>Gecko Store Extension Test Page</h1>
+
+  <div class="test-section">
+    <h3>1. Check Extension Availability</h3>
+    <button onclick="checkExtension()">Check Extension</button>
+    <div id="extension-status"></div>
+  </div>
+
+  <div class="test-section">
+    <h3>2. Set Test Token</h3>
+    <input type="text" id="test-token" placeholder="Enter JWT token" style="width: 300px; padding: 5px;">
+    <button onclick="setTestToken()">Set Token</button>
+    <div id="set-token-status"></div>
+  </div>
+
+  <div class="test-section">
+    <h3>3. Get Stored Token</h3>
+    <button onclick="getStoredToken()">Get Token</button>
+    <div id="get-token-status"></div>
+  </div>
+
+  <div class="test-section">
+    <h3>4. Clear Token</h3>
+    <button onclick="clearToken()">Clear Token</button>
+    <div id="clear-token-status"></div>
+  </div>
+
+  <div class="test-section">
+    <h3>5. Send Message to Extension</h3>
+    <button onclick="sendMessageToExtension()">Send Message</button>
+    <div id="message-status"></div>
+  </div>
+
+  <div class="test-section">
+    <h3>6. Test API Call</h3>
+    <button onclick="testApiCall()">Test API</button>
+    <div id="api-status"></div>
+  </div>
+
+  <script>
+    function showResult(elementId, message, isSuccess = true) {
+      const element = document.getElementById(elementId);
+      element.innerHTML = message;
+      element.className = isSuccess ? 'success' : 'error';
+    }
+
+    async function checkExtension() {
+      try {
+        if (typeof chrome !== 'undefined' && chrome.storage) {
+          showResult('extension-status', '✅ Extension is available');
+        } else {
+          showResult('extension-status', '❌ Extension not available', false);
+        }
+      } catch (error) {
+        showResult('extension-status', '❌ Error: ' + error.message, false);
+      }
+    }
+
+    async function setTestToken() {
+      try {
+        const token = document.getElementById('test-token').value;
+        if (!token) {
+          showResult('set-token-status', '❌ Please enter a token', false);
+          return;
+        }
+
+        await chrome.storage.local.set({
+          jwtToken: token,
+          userId: 'test-user-123',
+          lastUpdated: Date.now()
+        });
+
+        showResult('set-token-status', '✅ Token set successfully');
+      } catch (error) {
+        showResult('set-token-status', '❌ Error: ' + error.message, false);
+      }
+    }
+
+    async function getStoredToken() {
+      try {
+        const result = await chrome.storage.local.get(['jwtToken', 'userId', 'lastUpdated']);
+        if (result.jwtToken) {
+          const display = `
+            <div class="token-display">
+              <strong>Token:</strong> ${result.jwtToken.substring(0, 50)}...<br>
+              <strong>User ID:</strong> ${result.userId}<br>
+              <strong>Last Updated:</strong> ${new Date(result.lastUpdated).toLocaleString()}
+            </div>
+          `;
+          showResult('get-token-status', display);
+        } else {
+          showResult('get-token-status', '❌ No token found', false);
+        }
+      } catch (error) {
+        showResult('get-token-status', '❌ Error: ' + error.message, false);
+      }
+    }
+
+    async function clearToken() {
+      try {
+        await chrome.storage.local.remove(['jwtToken', 'userId', 'lastUpdated']);
+        showResult('clear-token-status', '✅ Token cleared successfully');
+      } catch (error) {
+        showResult('clear-token-status', '❌ Error: ' + error.message, false);
+      }
+    }
+
+    function sendMessageToExtension() {
+      try {
+        window.postMessage({
+          type: 'JWT_TOKEN_UPDATE',
+          token: 'test-token-from-message',
+          userId: 'test-user-message'
+        }, '*');
+
+        showResult('message-status', '✅ Message sent to extension');
+      } catch (error) {
+        showResult('message-status', '❌ Error: ' + error.message, false);
+      }
+    }
+
+    async function testApiCall() {
+      try {
+        const result = await chrome.storage.local.get(['jwtToken']);
+        if (!result.jwtToken) {
+          showResult('api-status', '❌ No token available for API call', false);
+          return;
+        }
+
+        const response = await fetch('https://dev.geckostore.my.id/api/auth/me', {
+          headers: { 'Authorization': `Bearer ${result.jwtToken}` }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          showResult('api-status', `✅ API call successful: ${data.success ? 'Valid token' : 'Invalid token'}`);
+        } else {
+          showResult('api-status', `❌ API call failed: ${response.status}`, false);
+        }
+      } catch (error) {
+        showResult('api-status', '❌ Error: ' + error.message, false);
+      }
+    }
+
+    // Auto check extension on load
+    window.addEventListener('load', checkExtension);
+  </script>
+</body>
+</html>

@@ -117,32 +117,32 @@ export default function SigninPage() {
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                 Email Address
               </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm placeholder-gray-500"
-                placeholder="Enter your email"
-              />
+               <input
+                 type="email"
+                 id="email"
+                 name="email"
+                 value={formData.email}
+                 onChange={handleChange}
+                 required
+                 className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm placeholder-gray-500 text-gray-900"
+                 placeholder="Enter your email"
+               />
             </div>
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 Password
               </label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm placeholder-gray-500"
-                placeholder="Enter your password"
-              />
+               <input
+                 type="password"
+                 id="password"
+                 name="password"
+                 value={formData.password}
+                 onChange={handleChange}
+                 required
+                 className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm placeholder-gray-500 text-gray-900"
+                 placeholder="Enter your password"
+               />
             </div>
 
             <button
