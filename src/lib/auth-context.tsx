@@ -13,13 +13,34 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+function getCookie(name: string): string | null {
+  const value = `; ${document.cookie}`
+  const parts = value.split(`; ${name}=`)
+  if (parts.length === 2) return parts.pop()?.split(';').shift() || null
+  return null
+}
+
+function setCookie(name: string, value: string, days?: number) {
+  let expires = ''
+  if (days) {
+    const date = new Date()
+    date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000)
+    expires = `; expires=${date.toUTCString()}`
+  }
+  document.cookie = `${name}=${value}; path=/; secure; samesite=strict${expires}`
+}
+
+function deleteCookie(name: string) {
+  document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserWithPlan | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
+    const token = getCookie('token')
     if (token) {
       // Validate token and fetch user data
       validateToken(token)
@@ -68,16 +89,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const data = await response.json()
 
     if (data.success) {
-      localStorage.setItem('token', data.data.token)
+      setCookie('token', data.data.token)
       setUser(data.data.user)
-
-      // Sync token with extension
-      window.postMessage({
-        type: 'JWT_TOKEN_UPDATE',
-        token: data.data.token,
-        userId: data.data.user.id
-      }, '*')
-
       router.push('/dashboard')
     } else {
       throw new Error(data.error || 'Login failed')
@@ -85,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const logout = async () => {
-    const token = localStorage.getItem('token')
+    const token = getCookie('token')
     if (token) {
       try {
         await fetch('/api/auth/signout', {
@@ -99,16 +112,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    localStorage.removeItem('token')
+    deleteCookie('token')
     setUser(null)
-
-    // Clear token from extension
-    window.postMessage({
-      type: 'JWT_TOKEN_UPDATE',
-      token: null,
-      userId: null
-    }, '*')
-
     router.push('/auth/signin')
   }
 

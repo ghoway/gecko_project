@@ -148,10 +148,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json<ApiResponse>({
       success: true,
-      data: {
-        serviceCode: service.code,
-        cookieData: service.cookie_data
-      }
+      data: service.cookie_data
     })
 
   } catch (error) {

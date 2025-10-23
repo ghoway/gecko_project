@@ -29,8 +29,8 @@ document.addEventListener('DOMContentLoaded', async function() {
   }
 
   async function initializeExtension() {
-    // Step 1: Get JWT token from web app's localStorage
-    const jwtToken = await getTokenFromWebApp();
+    // Step 1: Get JWT token from cookie
+    const jwtToken = await getTokenFromCookie();
 
     if (!jwtToken) {
       showAuthRequired();
@@ -54,23 +54,15 @@ document.addEventListener('DOMContentLoaded', async function() {
     await loadServices(jwtToken);
   }
 
-  async function getTokenFromWebApp() {
+  async function getTokenFromCookie() {
     try {
-      // Find web app tab
-      const tabs = await chrome.tabs.query({ url: `${homepageUrl}/*` });
-      if (tabs.length === 0) return null;
-
-      const activeTab = tabs[0]; // Use the first matching tab
-
-      // Execute script to get token from localStorage
-      const results = await chrome.scripting.executeScript({
-        target: { tabId: activeTab.id },
-        func: () => localStorage.getItem('token')
+      const cookie = await chrome.cookies.get({
+        url: homepageUrl,
+        name: 'token'
       });
-
-      return results[0]?.result || null;
+      return cookie ? cookie.value : null;
     } catch (error) {
-      console.error('Error getting token from web app:', error);
+      console.error('Error getting token from cookie:', error);
       return null;
     }
   }
@@ -112,13 +104,13 @@ document.addEventListener('DOMContentLoaded', async function() {
 
       if (!result.success) throw new Error(result.error || 'Failed to load services');
 
-      renderServices(result.data);
+      renderServices(result.data, token);
     } catch (error) {
       showError('Failed to load services: ' + error.message);
     }
   }
 
-  function renderServices(groups) {
+  function renderServices(groups, token) {
     elements.servicesContainer.innerHTML = '';
 
     if (!groups || groups.length === 0) {
@@ -150,9 +142,9 @@ document.addEventListener('DOMContentLoaded', async function() {
           button.dataset.serviceCode = service.code;
           button.title = `Code: ${service.code}`;
 
-          button.addEventListener('click', async (e) => {
-            await restoreServiceCookies(service.code, jwtToken, e.target);
-          });
+           button.addEventListener('click', async (e) => {
+             await restoreServiceCookies(service.code, token, e.target);
+           });
 
           servicesGrid.appendChild(button);
         });
@@ -189,7 +181,7 @@ document.addEventListener('DOMContentLoaded', async function() {
       if (!result.success) throw new Error(result.error || 'Failed to get cookie data');
 
       // Process cookie data and open tab
-      await processCookiesAndOpenTab(result.data.cookieData, serviceCode);
+      await processCookiesAndOpenTab(result.data, serviceCode);
 
       // Close popup
       window.close();
