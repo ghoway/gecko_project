@@ -1,12 +1,25 @@
-// Listen for JWT token updates from web app
-window.addEventListener('message', (event) => {
-  if (event.source !== window) return;
+// Kirim token saat halaman dimuat
+(function() {
+  // Fungsi untuk mengirim token ke extension
+  function sendToken() {
+    const token = localStorage.getItem("token");
 
-  if (event.data.type === 'JWT_TOKEN_UPDATE') {
-    chrome.runtime.sendMessage({
-      type: 'UPDATE_JWT_TOKEN',
-      token: event.data.token,
-      userId: event.data.userId
-    });
+    if (token) {
+      console.log("Sending token to extension");
+      chrome.runtime.sendMessage({
+        action: "storeToken",
+        data: { token }
+      });
+    }
   }
-});
+
+  // Kirim token saat halaman sudah dimuat
+  sendToken();
+
+  // Tambahkan listener untuk perubahan localStorage
+  window.addEventListener('storage', function(e) {
+    if (e.key === "token") {
+      sendToken();
+    }
+  });
+})();
