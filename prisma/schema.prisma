@@ -133,8 +133,40 @@ model Transaction {
   user                    User @relation(fields: [user_id], references: [id])
   plan_id                 Int
   plan                    Plan @relation(fields: [plan_id], references: [id])
+  invoice                 Invoice?
 
   @@map("transactions")
+}
+
+model Invoice {
+  id                  Int      @id @default(autoincrement())
+  transaction_id      Int      @unique
+  transaction         Transaction @relation(fields: [transaction_id], references: [id], onDelete: Cascade)
+
+  // Plan snapshot data
+  plan_name           String
+  plan_price          Float
+  plan_duration_days  Int
+
+  // Payment details
+  payment_method      String?
+  payment_gateway     String?
+  payment_type        String?
+
+  // Financial details
+  discount_amount     Float    @default(0)
+  tax_amount          Float    @default(0)
+  final_amount        Float
+
+  // User snapshot data
+  user_name           String
+  user_email          String
+
+  // Metadata
+  metadata            Json?
+  created_at          DateTime @default(now())
+
+  @@map("invoices")
 }
 
 model Subscription {

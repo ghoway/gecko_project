@@ -17,7 +17,7 @@ async function main() {
       is_popular: false,
       is_active: true
     }
-  })
+  });
 
   const proPlan = await prisma.plan.upsert({
     where: { id: 2 },
@@ -31,7 +31,7 @@ async function main() {
       is_popular: true,
       is_active: true
     }
-  })
+  });
 
   const premiumPlan = await prisma.plan.upsert({
     where: { id: 3 },
@@ -45,125 +45,8 @@ async function main() {
       is_popular: false,
       is_active: true
     }
-  })
+  });
 
-  // Create service groups
-  const socialMediaGroup = await prisma.serviceGroup.upsert({
-    where: { id: 1 },
-    update: {},
-    create: {
-      id: 1,
-      name: 'Social Media',
-      is_active: true
-    }
-  })
-
-  const streamingGroup = await prisma.serviceGroup.upsert({
-    where: { id: 2 },
-    update: {},
-    create: {
-      id: 2,
-      name: 'Streaming',
-      is_active: true
-    }
-  })
-
-  // Create categories
-  const socialCategory = await prisma.serviceCategory.upsert({
-    where: { id: 1 },
-    update: {},
-    create: {
-      id: 1,
-      name: 'Social Platforms',
-      description: 'Popular social media platforms',
-      icon_url: null,
-      group_id: 1,
-      is_active: true
-    }
-  })
-
-  const streamingCategory = await prisma.serviceCategory.upsert({
-    where: { id: 2 },
-    update: {},
-    create: {
-      id: 2,
-      name: 'Video Streaming',
-      description: 'Premium video streaming services',
-      icon_url: null,
-      group_id: 2,
-      is_active: true
-    }
-  })
-
-  // Create services
-  const netflixService = await prisma.service.upsert({
-    where: { code: 'netflix' },
-    update: {},
-    create: {
-      code: 'netflix',
-      name: 'Netflix Premium',
-      description: 'Access Netflix with premium account',
-      category_id: 2,
-      cookie_data: JSON.stringify([
-        {
-          name: 'NetflixId',
-          value: 'sample_value',
-          domain: '.netflix.com',
-          path: '/',
-          secure: true,
-          httpOnly: false
-        }
-      ]),
-      is_active: true,
-      is_maintenance: false
-    }
-  })
-
-  const instagramService = await prisma.service.upsert({
-    where: { code: 'instagram' },
-    update: {},
-    create: {
-      code: 'instagram',
-      name: 'Instagram Business',
-      description: 'Instagram business account access',
-      category_id: 1,
-      cookie_data: JSON.stringify([
-        {
-          name: 'sessionid',
-          value: 'sample_session',
-          domain: '.instagram.com',
-          path: '/',
-          secure: true,
-          httpOnly: false
-        }
-      ]),
-      is_active: true,
-      is_maintenance: false
-    }
-  })
-
-  const youtubeService = await prisma.service.upsert({
-    where: { code: 'youtube' },
-    update: {},
-    create: {
-      code: 'youtube',
-      name: 'YouTube Premium',
-      description: 'YouTube premium account access',
-      category_id: 1,
-      cookie_data: JSON.stringify([
-        {
-          name: 'YSC',
-          value: 'sample_ysc',
-          domain: '.youtube.com',
-          path: '/',
-          secure: true,
-          httpOnly: false
-        }
-      ]),
-      is_active: true,
-      is_maintenance: false
-    }
-  })
 
   console.log('Database seeded successfully!')
 }

@@ -100,6 +100,30 @@ export async function POST(request: NextRequest) {
     })
     console.log('Transaction created:', transaction.id)
 
+    // Create invoice record with snapshot data
+    const invoice = await prisma.invoice.create({
+      data: {
+        transaction_id: transaction.id,
+        plan_name: plan.name,
+        plan_price: plan.price,
+        plan_duration_days: plan.duration_in_days,
+        payment_method: null, // Will be updated when payment is completed
+        payment_gateway: 'midtrans',
+        payment_type: null, // Will be updated when payment is completed
+        discount_amount: 0,
+        tax_amount: taxAmount,
+        final_amount: totalAmount,
+        user_name: user.name,
+        user_email: user.email,
+        metadata: {
+          subtotal: plan.price,
+          tax_amount: taxAmount,
+          order_id: orderId
+        }
+      }
+    })
+    console.log('Invoice created:', invoice.id)
+
     console.log('Creating Midtrans transaction...')
     // Create Midtrans transaction using Snap
     let midtransResponse

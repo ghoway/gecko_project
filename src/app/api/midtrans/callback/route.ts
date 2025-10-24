@@ -64,6 +64,20 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    // Update invoice with payment details
+    await prisma.invoice.updateMany({
+      where: { transaction_id: transaction.id },
+      data: {
+        payment_method: payment_type,
+        payment_type: payment_type,
+        metadata: JSON.stringify({
+          callback_data: body,
+          final_status: newStatus,
+          transaction_id: transaction_id || body.transaction_id
+        })
+      }
+    })
+
     // If payment successful, create/update subscription
     if (newStatus === 'success') {
       // Check if subscription exists

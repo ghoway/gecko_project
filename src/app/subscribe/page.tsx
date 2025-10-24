@@ -118,6 +118,8 @@ export default function SubscribePage() {
     return `${days} days`
   }
 
+
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-100 via-red-50 to-blue-100 flex items-center justify-center">

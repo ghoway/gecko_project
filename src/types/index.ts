@@ -1,4 +1,4 @@
-import type { User, Plan, Service, ServiceGroup, ServiceCategory, Transaction, Subscription, Session } from '@prisma/client'
+import type { User, Plan, Service, ServiceGroup, ServiceCategory, Transaction, Subscription, Session, Invoice } from '@prisma/client'
 
 // API Response types
 export interface ApiResponse<T = unknown> {
@@ -73,6 +73,12 @@ export interface PlanWithServices extends Plan {
 export type TransactionWithDetails = Transaction & {
   user: User
   plan: Plan
+  invoice?: Invoice
+}
+
+// Invoice types
+export type InvoiceWithTransaction = Invoice & {
+  transaction: TransactionWithDetails
 }
 
 // Subscription types

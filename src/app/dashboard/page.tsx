@@ -1,31 +1,54 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import Navigation from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { User, Mail, Calendar, CreditCard } from 'lucide-react'
-import type { UserWithSubscription } from '@/types'
+import type { UserWithSubscription, GroupedServices } from '@/types'
+
+function getCookie(name: string): string | null {
+  const value = `; ${document.cookie}`
+  const parts = value.split(`; ${name}=`)
+  if (parts.length === 2) return parts.pop()?.split(';').shift() || null
+  return null
+}
+
+function deleteCookie(name: string) {
+  document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
+}
 
 export default function DashboardPage() {
   const [user, setUser] = useState<UserWithSubscription | null>(null)
   const [loading, setLoading] = useState(true)
+  const [services, setServices] = useState<GroupedServices[]>([])
+  const [servicesLoading, setServicesLoading] = useState(false)
   const router = useRouter()
 
-  useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      router.push('/auth/signin')
-      return
+  const fetchServices = useCallback(async (token: string) => {
+    try {
+      setServicesLoading(true)
+      const response = await fetch('/api/services', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        setServices(data.data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch services:', error)
+    } finally {
+      setServicesLoading(false)
     }
+  }, [])
 
-    // Fetch user data from API
-    fetchUserData(token)
-  }, [router])
-
-  const fetchUserData = async (token: string) => {
+  const fetchUserData = useCallback(async (token: string) => {
     try {
       const response = await fetch('/api/auth/me', {
         headers: {
@@ -36,19 +59,34 @@ export default function DashboardPage() {
       const data = await response.json()
       if (data.success) {
         setUser(data.data)
+        // Fetch services if user has active subscription
+        if (data.data.subscription?.status === 'active') {
+          await fetchServices(token)
+        }
         // Allow access to dashboard regardless of subscription status
       } else {
-        localStorage.removeItem('token')
+        deleteCookie('token')
         router.push('/auth/signin')
       }
     } catch (error) {
       console.error('Failed to fetch user data:', error)
-      localStorage.removeItem('token')
+      deleteCookie('token')
       router.push('/auth/signin')
     } finally {
       setLoading(false)
     }
-  }
+  }, [fetchServices, router])
+
+  useEffect(() => {
+    const token = getCookie('token')
+    if (!token) {
+      router.push('/auth/signin')
+      return
+    }
+
+    // Fetch user data from API
+    fetchUserData(token)
+  }, [router, fetchUserData])
 
 
 
@@ -225,9 +263,54 @@ export default function DashboardPage() {
           </h2>
           <Card className="bg-white/10 backdrop-blur-lg border border-white/20">
             <CardContent className="p-8">
-              <p className="text-center text-gray-600">
-                Service access information will be displayed here. Use the extension to access your premium accounts.
-              </p>
+              {user?.subscription?.status === 'active' ? (
+                servicesLoading ? (
+                  <div className="text-center py-8">
+                    <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading your services...</p>
+                  </div>
+                ) : services.length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-16 gap-8">
+                     {services.flatMap(group =>
+                      group.categories.map(category => (
+                        <div key={category.id} className="text-center p-4 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-colors">
+                          {category.icon_url && (
+                            <div className="w-12 h-12 mx-auto mb-3 rounded-lg shadow-sm overflow-hidden">
+                              <Image
+                                src={category.icon_url}
+                                alt={category.name}
+                                width={48}
+                                height={48}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none'
+                                }}
+                              />
+                            </div>
+                          )}
+                          <h3 className="font-semibold text-gray-800 text-sm mb-1">{category.name}</h3>
+                          
+                        </div>
+                      ))
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-center text-gray-600">
+                    No services available for your current plan.
+                  </p>
+                )
+              ) : (
+                <div className="text-center">
+                  <p className="text-gray-600 mb-4">
+                    Subscribe to access premium services and accounts.
+                  </p>
+                  <Link href="/subscribe">
+                    <Button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white">
+                      Subscribe Now
+                    </Button>
+                  </Link>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

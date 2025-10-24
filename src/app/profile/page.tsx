@@ -13,15 +13,23 @@ interface Transaction {
   status: 'pending' | 'success' | 'failed' | 'expired'
   amount: number
   midtrans_order_id: string
-  midtrans_transaction_id?: string
   payment_type?: string
-  created_at: string
-  plan_id: number
+  payment_method?: string
+  payment_gateway?: string
   redirect_url?: string
-  metadata?: Record<string, unknown>
+  created_at: string
+  updated_at: string
   plan: {
     name: string
     price: number
+    duration_in_days: number
+  } | null
+  discount_amount: number
+  tax_amount: number
+  final_amount: number
+  user_snapshot?: {
+    name: string
+    email: string
   }
 }
 
@@ -203,6 +211,8 @@ export default function ProfilePage() {
     }
   }
 
+
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-100 via-red-50 to-blue-100 flex items-center justify-center">
@@ -292,49 +302,65 @@ export default function ProfilePage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white/10 backdrop-blur-lg border border-white/20">
-              <CardHeader>
-                <CardTitle className="flex items-center text-gray-800">
-                  <DollarSign className="w-5 h-5 mr-2" />
-                  Transaction History
-                </CardTitle>
-              </CardHeader>
+             <Card className="bg-white/10 backdrop-blur-lg border border-white/20">
+               <CardHeader>
+                 <CardTitle className="flex items-center text-gray-800">
+                   <DollarSign className="w-5 h-5 mr-2" />
+                   Transaction History
+                 </CardTitle>
+               </CardHeader>
               <CardContent>
                 {transactions.length === 0 ? (
                   <p className="text-gray-600 text-center py-8">No transactions found</p>
                 ) : (
                   <div className="space-y-4">
-                    {transactions.map((transaction) => (
-                      <div key={transaction.id} className="flex items-center justify-between p-4 bg-white/20 rounded-lg">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
-                            <Crown className="w-5 h-5 text-white" />
-                          </div>
-                          <div>
-                            <p className="font-semibold text-gray-800">{transaction.plan.name}</p>
-                            <p className="text-sm text-gray-600">{formatDate(transaction.created_at)}</p>
-                            <p className="text-sm text-gray-600">Order ID: {transaction.midtrans_order_id}</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-semibold text-gray-800">{formatCurrency(transaction.amount)}</p>
-                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(transaction.status)}`}>
-                            {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
-                          </span>
-                          {transaction.status === 'pending' && transaction.redirect_url && (
-                            <div className="mt-2">
-                              <Button
-                                size="sm"
-                                onClick={() => handlePayNow(transaction)}
-                                className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-0"
-                              >
-                                Pay Now
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                     {transactions.map((transaction) => (
+                       <div key={transaction.id} className="flex items-center justify-between p-4 bg-white/20 rounded-lg">
+                         <div className="flex items-center space-x-4">
+                           <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
+                             <Crown className="w-5 h-5 text-white" />
+                           </div>
+                           <div>
+                             <p className="font-semibold text-gray-800">
+                               {transaction.plan ? transaction.plan.name : 'Unknown Plan'}
+                               {transaction.plan && (
+                                 <span className="text-sm text-gray-500 ml-2">
+                                   ({transaction.plan.duration_in_days} days)
+                                 </span>
+                               )}
+                             </p>
+                             <p className="text-sm text-gray-600">{formatDate(transaction.created_at)}</p>
+                             <p className="text-sm text-gray-600">Order ID: {transaction.midtrans_order_id}</p>
+                             {transaction.payment_type && (
+                               <p className="text-sm text-gray-600">Payment: {transaction.payment_type}</p>
+                             )}
+                           </div>
+                         </div>
+                         <div className="text-right">
+                           <p className="font-semibold text-gray-800">{formatCurrency(transaction.final_amount)}</p>
+                           {transaction.discount_amount > 0 && (
+                             <p className="text-sm text-green-600">Discount: -{formatCurrency(transaction.discount_amount)}</p>
+                           )}
+                           {transaction.tax_amount > 0 && (
+                             <p className="text-sm text-gray-600">Tax: {formatCurrency(transaction.tax_amount)}</p>
+                           )}
+                           <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(transaction.status)}`}>
+                             {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
+                           </span>
+                           {transaction.status === 'pending' && transaction.redirect_url && (
+                             <div className="mt-2">
+                               <Button
+                                 size="sm"
+                                 onClick={() => handlePayNow(transaction)}
+                                 className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-0"
+                               >
+                                 Pay Now
+                               </Button>
+                             </div>
+                           )}
+                         </div>
+                       </div>
+                     ))}
                   </div>
                 )}
               </CardContent>
