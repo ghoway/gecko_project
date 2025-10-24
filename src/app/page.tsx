@@ -330,7 +330,7 @@ export default function Home() {
                        <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-red-500 to-blue-500 text-white text-center py-2 text-sm font-semibold">
                          <div className="flex items-center justify-center gap-1">
                            <Star className="w-4 h-4 fill-current" />
-                           Paling Populer
+                           Most Popular
                          </div>
                        </div>
                      )}

@@ -3,8 +3,8 @@ import bcrypt from 'bcryptjs'
 import { prisma } from './prisma'
 export { getAccessibleServices, canAccessService, hasActiveSubscription } from './access-control'
 
-const JWT_SECRET = process.env.JWT_SECRET!
-const JWT_EXPIRES_IN = '7d'
+const JWT_SECRET: string = process.env.JWT_SECRET || 'your-super-secret-jwt-key-here'
+const JWT_EXPIRES_IN = process.env.JWT_ACCESS_TOKEN_EXPIRES_IN || '15m'
 
 export interface JWTPayload {
   userId: string
@@ -21,7 +21,10 @@ export const verifyPassword = async (password: string, hashedPassword: string): 
 }
 
 export const generateToken = (payload: JWTPayload): string => {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN })
+  if (!JWT_SECRET) {
+    throw new Error('JWT_SECRET is not configured')
+  }
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN } as jwt.SignOptions)
 }
 
 export const verifyToken = (token: string): JWTPayload | null => {

@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
       httpOnly: false, // Allow client-side access for extension
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7 // 7 days
+      maxAge: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN ? parseInt(process.env.JWT_ACCESS_TOKEN_EXPIRES_IN) * 60 : 900, // Default 15 minutes
     })
 
     // Also set in header

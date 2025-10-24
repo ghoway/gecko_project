@@ -3,6 +3,22 @@ import { prisma } from '@/lib/prisma'
 import { verifyPassword, generateToken, createSession, invalidateUserSessions, recordFailedLogin, getFailedLoginCount } from '@/lib/auth'
 import type { ApiResponse, LoginRequest, AuthResponse } from '@/types'
 
+function parseTimeStringToSeconds(timeString: string): number {
+  const match = timeString.match(/^(\d+)([smhd])$/)
+  if (!match) return 900 // Default 15 minutes
+
+  const value = parseInt(match[1])
+  const unit = match[2]
+
+  switch (unit) {
+    case 's': return value
+    case 'm': return value * 60
+    case 'h': return value * 60 * 60
+    case 'd': return value * 60 * 60 * 24
+    default: return 900
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body: LoginRequest = await request.json()
@@ -91,7 +107,7 @@ export async function POST(request: NextRequest) {
       httpOnly: false, // Allow client-side access for extension
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7 // 7 days
+      maxAge: parseTimeStringToSeconds(process.env.JWT_ACCESS_TOKEN_EXPIRES_IN || '15m'), // Default 15 minutes
     })
 
     // Also set in header for additional access
